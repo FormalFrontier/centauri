@@ -5,3 +5,4 @@
 -- grows, import the submodules of `TauCeti/` here.
 import TauCeti.AlgebraicTopology.UniversalCover.Deck
 import TauCeti.Basic
+import TauCeti.Topology.Algebra.Homeomorph
