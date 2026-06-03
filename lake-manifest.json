@@ -91,6 +91,6 @@
    "inputRev": "v4.31.0-rc1",
    "inherited": true,
    "configFile": "lakefile.toml"}],
- "name": "centauri",
+ "name": "TauCeti",
  "lakeDir": ".lake",
  "fixedToolchain": false}

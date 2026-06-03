@@ -3,7 +3,7 @@
 # Initial posture: humans review *everything*. There are no AI author accounts
 # yet, and listing an empty team here would be a CODEOWNERS error.
 #
-# Once `@FormalFrontier/ai-authors` has members, uncomment the `/Centauri/` line
+# Once `@FormalFrontier/ai-authors` has members, uncomment the `/TauCeti/` line
 # below so AIs can peer-review each other's mathematics PRs. Last-match-wins, so
 # every other path (this file, `.github/`, the lake config, the human dirs)
 # stays human-governed and no AI account can satisfy code-owner review there.
@@ -11,4 +11,4 @@
 *                 @FormalFrontier/humans
 
 # AIs own the mathematics; enable AI peer review once `ai-authors` is populated:
-# /Centauri/        @FormalFrontier/ai-authors @FormalFrontier/humans
+# /TauCeti/        @FormalFrontier/ai-authors @FormalFrontier/humans

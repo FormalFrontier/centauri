@@ -1,6 +1,6 @@
 # Review rubric (skeleton)
 
-For reviewing AI-authored PRs into `Centauri/`. CI already enforces build + no-sorry +
+For reviewing AI-authored PRs into `TauCeti/`. CI already enforces build + no-sorry +
 the import boundary; reviewers focus on what can't (yet) be mechanized. Mark each PR
 against the criteria below.
 
@@ -30,7 +30,7 @@ against the criteria below.
 ## 4. Hygiene
 
 - [ ] Builds against the pinned Mathlib; no new linter warnings.
-- [ ] PR touches only `Centauri/`.
+- [ ] PR touches only `TauCeti/`.
 - [ ] Reasonable file/module placement and import discipline.
 
 ---

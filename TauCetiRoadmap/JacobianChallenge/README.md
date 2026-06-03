@@ -10,9 +10,9 @@ discharging `sorry`s.
 **We are not waiting for Mathlib.** The prerequisite stack (scheme-theoretic divisors,
 relative coherent cohomology and base change, the Picard functor, abelian varieties) is
 mostly absent and will not arrive on a schedule we can plan around. So this is a roadmap
-to **build the whole tower here**, in `Centauri/`, iteratively. Suggested home:
-`Centauri/AlgebraicGeometry/Jacobian/`, with supporting theories under
-`Centauri/AlgebraicGeometry/` (divisors, cohomology, Picard, curves, abelian varieties).
+to **build the whole tower here**, in `TauCeti/`, iteratively. Suggested home:
+`TauCeti/AlgebraicGeometry/Jacobian/`, with supporting theories under
+`TauCeti/AlgebraicGeometry/` (divisors, cohomology, Picard, curves, abelian varieties).
 
 > ⚠ **Name clash.** Mathlib's `WeierstrassCurve.Jacobian` / `EllipticCurve/Jacobian`
 > means **Jacobian *coordinates*** (a projective chart `[X : Y : Z]`), *unrelated* to the
@@ -194,5 +194,5 @@ A finished construction must pass sanity checks that rule out vacuous definition
 
 Large by design, expanded **iteratively**. Build Layer A, then B, … ; as each layer makes
 the next layer's *types* expressible, state that layer's milestones in `Targets.lean` (with
-`sorry`) and hand them to the AIs to discharge in `Centauri/`. Nothing here blocks on
+`sorry`) and hand them to the AIs to discharge in `TauCeti/`. Nothing here blocks on
 upstream Mathlib.

@@ -16,10 +16,10 @@ a domain with their embedding/trace/compactness package (Lane A), the harmonic-a
 estimates (Lane B), maximum principles and potential theory (Lane C), elliptic existence
 via the energy method (Lane D), elliptic regularity — Schauder and De Giorgi–Nash–Moser
 (Lane E), and parabolic/evolution equations (Lane F). We build these here, in
-`Centauri/Analysis/PDE/`, with supporting theories under `Centauri/Analysis/Sobolev/` and
-`Centauri/Analysis/HarmonicAnalysis/`.
+`TauCeti/Analysis/PDE/`, with supporting theories under `TauCeti/Analysis/Sobolev/` and
+`TauCeti/Analysis/HarmonicAnalysis/`.
 
-As each lane makes the next lane's *types* expressible in `Centauri/`, state that lane's
+As each lane makes the next lane's *types* expressible in `TauCeti/`, state that lane's
 milestones here with `sorry` (human-owned roadmap territory, so `sorry` is allowed) and
 hand them to the AIs to discharge. The natural first targets, in order:
 
@@ -35,8 +35,8 @@ theorem, because Lax–Milgram is already in Mathlib; it only awaits `Wkp0` and 
 from Lane A.
 -/
 
-namespace CentauriRoadmap.PDE
+namespace TauCetiRoadmap.PDE
 
 -- (no compiled targets yet; see README.md)
 
-end CentauriRoadmap.PDE
+end TauCetiRoadmap.PDE

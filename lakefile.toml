@@ -1,5 +1,5 @@
-name = "centauri"
-defaultTargets = ["Centauri", "CentauriRoadmap"]
+name = "TauCeti"
+defaultTargets = ["TauCeti", "TauCetiRoadmap"]
 
 [[require]]
 name = "mathlib"
@@ -8,9 +8,9 @@ rev = "master"
 
 # AI-owned: all the mathematics. No sorries (enforced in CI).
 [[lean_lib]]
-name = "Centauri"
+name = "TauCeti"
 
 # Human-owned: roadmaps and target signatures. Sorries are allowed here:
-# these are goals, not proofs. `Centauri` may not import this library (CI guard).
+# these are goals, not proofs. `TauCeti` may not import this library (CI guard).
 [[lean_lib]]
-name = "CentauriRoadmap"
+name = "TauCetiRoadmap"

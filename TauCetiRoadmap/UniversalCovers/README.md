@@ -3,10 +3,10 @@
 Mathlib already has a substantial covering-space toolkit; what it lacks is the
 **universal cover construction itself** and the **deck transformation group**, which sit
 in PRs that stalled or died upstream. We are not waiting: **port the missing
-construction into `Centauri/`, sorry-free and attributed, consume the rest from Mathlib,
+construction into `TauCeti/`, sorry-free and attributed, consume the rest from Mathlib,
 and build the theory of covers on top here.**
 
-Suggested home: `Centauri/AlgebraicTopology/UniversalCover/`. Original roadmap content:
+Suggested home: `TauCeti/AlgebraicTopology/UniversalCover/`. Original roadmap content:
 the gist <https://gist.github.com/kim-em/70e1762ab143b88605c699059769111c>.
 
 ## Standing hypotheses and basepoint policy
@@ -60,7 +60,7 @@ deck group `N(H)/H`, and the higher-homotopy API.
 
 ---
 
-## Stage 0: port the foundations into `Centauri/`
+## Stage 0: port the foundations into `TauCeti/`
 
 Bring the existing, human-written construction into this library, sorry-free; credit the
 original authors and source PR in each file.
@@ -151,5 +151,5 @@ Stage 0 first: a careful port that unblocks everything. Then Stage 1 (5), then S
 (7)/(8); the basepoint/conjugacy bookkeeping is the subtle part there, not the topology.
 Stage 3 is a larger, separable track, but lighter than it looks now that homotopy lifting
 is available; the cost is the `π_n` API, not lifting. As each milestone's prerequisite
-*types* exist in `Centauri/`, state the milestone in `Targets.lean` (with `sorry`) and
+*types* exist in `TauCeti/`, state the milestone in `Targets.lean` (with `sorry`) and
 hand it to the AIs to discharge.

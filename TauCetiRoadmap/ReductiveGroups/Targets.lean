@@ -10,7 +10,7 @@ whole tower here rather than waiting on Mathlib.
 This file holds the **Layer 0** targets translating between affine group schemes and
 Hopf algebras (Kevin Buzzard). They elaborate against the pinned Mathlib commit and are
 stated with `sorry` (allowed in this human-owned roadmap library). As later layers
-make their types expressible in `Centauri/`, add their milestones here with `sorry`
+make their types expressible in `TauCeti/`, add their milestones here with `sorry`
 and hand them to the AIs to discharge. Next up after these: the convolution group
 structure on the functor of points, and base change of Hopf algebras.
 -/
@@ -18,7 +18,7 @@ structure on the functor of points, and base change of Hopf algebras.
 open CategoryTheory AlgebraicGeometry CommRingCat Scheme Opposite Spec
 open scoped SpecOfNotation
 
-namespace CentauriRoadmap.ReductiveGroups
+namespace TauCetiRoadmap.ReductiveGroups
 
 universe u
 
@@ -32,4 +32,4 @@ example (G : Scheme) (φ : G ⟶ Spec(R)) [GrpObj (Over.mk φ)] [IsAffine G] :
 example (A : Type u) [CommRing A] [HopfAlgebra R A] :
     GrpObj (Over.mk (map (ofHom (algebraMap R A)) : Spec(A) ⟶ Spec(R))) := sorry
 
-end CentauriRoadmap.ReductiveGroups
+end TauCetiRoadmap.ReductiveGroups

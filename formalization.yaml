@@ -1,7 +1,7 @@
 # formalization.yaml (v0.2): repo-root metadata for formalization projects.
 # [required] fields should be filled; everything else is optional.
 #
-# NOTE: Proxima Centauri is an open-ended, continuously evolving library, not the
+# NOTE: Tau Ceti is an open-ended, continuously evolving library, not the
 # formalization of a fixed target. Many fields below therefore describe an ongoing
 # process and an aspiration rather than a finished artifact. They are filled in as
 # best we can and will drift as the library grows.
@@ -10,20 +10,20 @@ version: "v0.2"
 
 # project - the formalization itself (not the source).
 project:
-  name: "Proxima Centauri"     # [required]
+  name: "Tau Ceti"     # [required]
   authors:                     # [required] who did the formalization
-    - "AI author agents (the Lean code under Centauri/)"
+    - "AI author agents (the Lean code under TauCeti/)"
     - "Human stewards (roadmaps, CI, review), FormalFrontier"
   license: "Apache-2.0"        # [required]
 
 # sources - what was formalized.
-# Proxima Centauri has no single fixed source. Its specification is its own
-# human-authored, human-reviewed roadmaps under CentauriRoadmap/, which play the role
+# Tau Ceti has no single fixed source. Its specification is its own
+# human-authored, human-reviewed roadmaps under TauCetiRoadmap/, which play the role
 # of blueprints and themselves cite the mathematical literature.
 sources:                       # [required] list of sources
-  - title: "Proxima Centauri roadmaps (human-curated)"   # [required]
-    authors: ["Proxima Centauri human stewards"]         # [required]
-    id: "https://github.com/FormalFrontier/centauri/tree/main/CentauriRoadmap"  # [required]
+  - title: "Tau Ceti roadmaps (human-curated)"   # [required]
+    authors: ["Tau Ceti human stewards"]         # [required]
+    id: "https://github.com/FormalFrontier/TauCeti/tree/main/TauCetiRoadmap"  # [required]
     type: "blueprint"
     license: "Apache-2.0"
     author_contacted: "n/a"
@@ -39,20 +39,20 @@ automation:
     spend_usd: "ongoing; varies by contributor"
     hardware: "API- and subscription-based; varies by contributor"
   notes: >
-    Open, multi-agent library. AIs own the code under Centauri/: they initiate pull
+    Open, multi-agent library. AIs own the code under TauCeti/: they initiate pull
     requests and shepherd them through an AI-driven review process. Humans own the
-    roadmaps (CentauriRoadmap/: markdown plus sorry-allowed Lean target signatures)
-    and the review rubrics (CentauriReview/), and may raise issues against the code.
+    roadmaps (TauCetiRoadmap/: markdown plus sorry-allowed Lean target signatures)
+    and the review rubrics (TauCetiReview/), and may raise issues against the code.
     The human/AI split is enforced by CODEOWNERS and branch protection; the main
     branch is always green. No single harness or model is mandated.
 
 # project status
 status:
   scope: >
-    All of mathematics: past, present, and emerging. Proxima Centauri is an
+    All of mathematics: past, present, and emerging. Tau Ceti is an
     open-ended, continuously evolving library downstream of Mathlib, not the
     formalization of a fixed target.
-  sorry_count: 0               # the code library (Centauri/) forbids sorry; CI enforces this
+  sorry_count: 0               # the code library (TauCeti/) forbids sorry; CI enforces this
   sorry_in_definitions: 0
   axioms:                      # the permitted allowlist (policy); current bootstrap content uses no non-standard axioms
     - "propext"
@@ -64,7 +64,7 @@ status:
 fidelity:
   divergences: >
     Not applicable in the usual sense: there is no fixed source to diverge from. The
-    human-authored roadmaps are the specification, and Centauri/ may freely generalize.
+    human-authored roadmaps are the specification, and TauCeti/ may freely generalize.
     Where a roadmap target needs material that lives only in an open or closed Mathlib
     PR, that material is vendored here with attribution rather than waited on.
 
@@ -73,11 +73,11 @@ review:
   status: "agent-reviewed"     # [required] intended process: AI peer review against human-authored rubrics
   reviewers:
     - "AI author agents (peer review of code PRs)"
-    - "Human stewards (rubrics in CentauriReview/; review of roadmap PRs)"
+    - "Human stewards (rubrics in TauCetiReview/; review of roadmap PRs)"
   notes: >
-    Code PRs into Centauri/ are peer-reviewed by AI agents against rubrics authored by
-    humans (CentauriReview/). Merging requires a green CI run (build against pinned
-    Mathlib; no sorry/admit/sorryAx in Centauri/; and Centauri/ may not import the
+    Code PRs into TauCeti/ are peer-reviewed by AI agents against rubrics authored by
+    humans (TauCetiReview/). Merging requires a green CI run (build against pinned
+    Mathlib; no sorry/admit/sorryAx in TauCeti/; and TauCeti/ may not import the
     roadmap/review trees) plus code-owner review, enforced by branch protection.
     Human-governed paths are human-reviewed. The library is bootstrapping, so little
     has been reviewed yet.
@@ -85,8 +85,8 @@ review:
 # alignment - how source statements map to formal declarations.
 alignment:
   note: >
-    The human-authored roadmaps under CentauriRoadmap/ are the closest thing to a
+    The human-authored roadmaps under TauCetiRoadmap/ are the closest thing to a
     blueprint. Each roadmap (e.g. UniversalCovers, JacobianChallenge, ReductiveGroups)
     states its goals as sorry-allowed signatures in its Targets.lean; the matching
-    sorry-free development lives (or will live) under Centauri/.
-  roadmaps: "https://github.com/FormalFrontier/centauri/tree/main/CentauriRoadmap"
+    sorry-free development lives (or will live) under TauCeti/.
+  roadmaps: "https://github.com/FormalFrontier/TauCeti/tree/main/TauCetiRoadmap"

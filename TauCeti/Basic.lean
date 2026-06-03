@@ -1,16 +1,16 @@
 import Mathlib.Tactic
 
 /-!
-# Centauri
+# TauCeti
 
-Placeholder module so the `Centauri` library builds before any mathematics has
+Placeholder module so the `TauCeti` library builds before any mathematics has
 landed. Replace/extend with real content. This library must stay free of unfinished
-proofs and trust escape hatches; CI rejects them (see `CentauriReview/`).
+proofs and trust escape hatches; CI rejects them (see `TauCetiReview/`).
 -/
 
-namespace Centauri
+namespace TauCeti
 
 /-- A tiny sanity check that the library compiles against Mathlib. -/
 theorem hello : 1 + 1 = 2 := by norm_num
 
-end Centauri
+end TauCeti

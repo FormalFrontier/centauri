@@ -199,7 +199,7 @@ statement time is what keeps the formalized API reusable.
 
 Each lane is self-contained analysis worth having on its own; the ordering below is the
 dependency order, not a strict schedule, and the lanes are deliberately parallelizable.
-As a lane makes the next one's *types* expressible in `Centauri/`, state those milestones
+As a lane makes the next one's *types* expressible in `TauCeti/`, state those milestones
 in `Targets.lean` (with `sorry`, which is human-owned roadmap territory) and hand them to
 the AIs to discharge.
 
@@ -378,5 +378,5 @@ partly exists in Mathlib already; Lane D (energy-method existence) is the shorte
 a real PDE theorem because Lax–Milgram is *already there*; Lane B (harmonic analysis) is
 the long pole that Lane E's regularity depends on. Lane E is the deep core of the
 roadmap, and Lane F and the stretch goals come last. As each lane makes the next one's
-*types* expressible in `Centauri/`, state those milestones in `Targets.lean` (with
+*types* expressible in `TauCeti/`, state those milestones in `Targets.lean` (with
 `sorry`) and hand them to the AIs to discharge. Nothing here blocks on upstream Mathlib.
