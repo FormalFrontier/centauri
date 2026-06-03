@@ -8,9 +8,8 @@ name: pr-build
 # compiles only under landrun (offline; writes confined to base/.lake; no secrets or token in
 # reach). The `build` commit status on the PR head SHA is the required merge check.
 #
-# workflow_dispatch builds a given PR for ad-hoc testing (pull_request_target only runs from the
-# default branch). Currently dispatch-only; the pull_request_target trigger is added once the
-# overlay logic is re-validated on main.
+# Live on pull_request_target (fires for all PRs, incl. forks, from the trusted base definition).
+# workflow_dispatch is also kept for ad-hoc re-testing of a given PR number.
 
 on:
   pull_request_target:
