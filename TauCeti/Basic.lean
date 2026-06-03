@@ -13,4 +13,7 @@ namespace TauCeti
 /-- A tiny sanity check that the library compiles against Mathlib. -/
 theorem hello : 1 + 1 = 2 := by norm_num
 
+/-- Throwaway: auto-merge gate test (should be blocked, never merged). -/
+theorem amGate : 0 < 19 := by norm_num
+
 end TauCeti
