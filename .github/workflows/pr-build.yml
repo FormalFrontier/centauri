@@ -1,21 +1,23 @@
 name: pr-build
 
 # Builds untrusted PR code in a TRUSTED, base-branch-defined workflow. A PR cannot change what
-# runs here (pull_request_target uses the base definition). PR code executes ONLY under landrun,
-# offline, with no secrets and no token in reach. The `build` commit status posted to the PR head
-# SHA is the required check that gates merge.
+# runs here (pull_request_target uses the base definition). The build/audit configuration
+# (lakefile, Scripts/, manifest, toolchain) is always the TRUSTED base's: we overlay only the
+# PR's `TauCeti/` sources onto a base checkout and build that. Any PR touching anything outside
+# `TauCeti/` is routed to a human (it can't be validated with trusted config). PR `TauCeti/` code
+# compiles only under landrun (offline; writes confined to base/.lake; no secrets or token in
+# reach). The `build` commit status on the PR head SHA is the required merge check.
 #
-# workflow_dispatch is for testing the build/sandbox logic from a branch before this is on main
-# (pull_request_target itself only runs from the default branch).
+# workflow_dispatch builds a given PR for ad-hoc testing (pull_request_target only runs from the
+# default branch). Currently dispatch-only; the pull_request_target trigger is added once the
+# overlay logic is re-validated on main.
 
 on:
-  # v1 is dispatch-only so the build/sandbox logic can be proven on main before going live.
-  # The `pull_request_target` trigger (below) is added in a follow-up once tested + security-reviewed.
   # pull_request_target:
   #   types: [opened, synchronize, reopened]
   workflow_dispatch:
     inputs:
-      pr: { description: "PR number to build (testing)", required: true, type: string }
+      pr: { description: "PR number to build", required: true, type: string }
 
 permissions:
   contents: read
@@ -32,7 +34,7 @@ jobs:
       LANDRUN_SHA256: 645178e3239cd33760560834e50efea0864183a2a8a82faf199760dffee6dd71
       LANDRUN_VER: v0.1.14
     steps:
-      # --- Trusted setup: no PR code runs in any step until the landrun build phase ---
+      # --- Trusted setup: no PR code runs until the landrun build phase ---
       - name: Resolve PR head
         id: pr
         env: { GH_TOKEN: "${{ github.token }}" }
@@ -51,13 +53,25 @@ jobs:
           echo "repo=$REPO" >> "$GITHUB_OUTPUT"
           echo "Building PR #$NUM @ $SHA from $REPO"
 
+      - name: Scope guard — PR must touch only TauCeti/ (from the trusted GitHub file list)
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          files=$(gh api --paginate "repos/${{ github.repository }}/pulls/${{ steps.pr.outputs.num }}/files" --jq '.[].filename')
+          echo "changed files:"; echo "$files"
+          if [ -z "$files" ]; then
+            echo "INFRA=1" >> "$GITHUB_ENV"; echo "::warning::no files / unable to list — routing to human"
+          elif echo "$files" | grep -vqE '^TauCeti/'; then
+            echo "INFRA=1" >> "$GITHUB_ENV"
+            echo "::warning::PR changes paths outside TauCeti/ (infra) — not sandbox-built; needs human review"
+          fi
+
       - name: Checkout base (trusted)
+        if: ${{ env.INFRA != '1' }}
         uses: actions/checkout@v4
-        with:
-          path: base
-          persist-credentials: false
+        with: { path: base, persist-credentials: false }
 
       - name: Checkout PR head (untrusted, no credentials)
+        if: ${{ env.INFRA != '1' }}
         uses: actions/checkout@v4
         with:
           repository: ${{ steps.pr.outputs.repo }}
@@ -65,74 +79,69 @@ jobs:
           path: pr
           persist-credentials: false
 
-      - name: Infra-change guard (mathlib rev + toolchain must match base)
-        # If the PR changes the Mathlib pin or the toolchain, the trusted offline build can't
-        # validate it; such infra PRs are sent to a human instead of auto-built/sandbox-built.
+      - name: Overlay PR TauCeti/ onto the trusted base (reject symlinks)
+        if: ${{ env.INFRA != '1' }}
         run: |
-          mrev() { jq -r '.packages[] | select(.name=="mathlib") | .rev' "$1/lake-manifest.json"; }
-          base_rev=$(mrev base); pr_rev=$(mrev pr)
-          base_tc=$(cat base/lean-toolchain); pr_tc=$(cat pr/lean-toolchain)
-          echo "mathlib base=$base_rev pr=$pr_rev ; toolchain base=$base_tc pr=$pr_tc"
-          if [ "$base_rev" != "$pr_rev" ] || [ "$base_tc" != "$pr_tc" ]; then
-            echo "INFRA_PR=1" >> "$GITHUB_ENV"
-            echo "::warning::PR changes the Mathlib pin or toolchain; needs human review (not sandbox-built)."
+          # No symlinks in the untrusted sources (avoid read/write escapes via the build tree).
+          if find pr/TauCeti -type l -print | grep -q .; then
+            echo "::error::symlinks are not allowed under TauCeti/"; exit 1
           fi
+          test -d pr/TauCeti && test ! -L pr/TauCeti
+          rm -rf base/TauCeti
+          cp -a pr/TauCeti base/TauCeti
 
       - name: Import-boundary guard (TauCeti/ ⊬ roadmap/review)
+        if: ${{ env.INFRA != '1' }}
         run: |
-          if grep -rIn -E '^[[:space:]]*import[[:space:]]+(TauCetiRoadmap|TauCetiReview)\b' pr/TauCeti/; then
-            echo "::error::TauCeti/ must not import TauCetiRoadmap or TauCetiReview"
-            exit 1
+          if grep -rIn -E '^[[:space:]]*import[[:space:]]+(TauCetiRoadmap|TauCetiReview)\b' base/TauCeti/; then
+            echo "::error::TauCeti/ must not import TauCetiRoadmap or TauCetiReview"; exit 1
           fi
 
       - name: Install elan (trusted)
+        if: ${{ env.INFRA != '1' }}
         run: |
           curl -sSfL https://elan.lean-lang.org/elan-init.sh -o elan-init.sh
           chmod +x elan-init.sh && ./elan-init.sh -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
       - name: Install landrun (pinned + checksum) and self-test (fail closed)
+        if: ${{ env.INFRA != '1' }}
         run: |
           curl -sSL -H "Accept: application/octet-stream" \
             "https://github.com/Zouuup/landrun/releases/download/${LANDRUN_VER}/landrun-linux-amd64" -o landrun
           echo "${LANDRUN_SHA256}  landrun" | sha256sum -c -
-          install -m 0755 landrun "$HOME/.local/bin/landrun" 2>/dev/null || { mkdir -p "$HOME/.local/bin"; install -m 0755 landrun "$HOME/.local/bin/landrun"; }
+          mkdir -p "$HOME/.local/bin"; install -m 0755 landrun "$HOME/.local/bin/landrun"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           export PATH="$HOME/.local/bin:$PATH"
           landrun --version || true
-          # Prove the sandbox actually enforces before we trust it with PR code.
+          # Prove the sandbox enforces before trusting it with PR code: run works, out-of-tree
+          # write denied, /dev/shm write denied, network denied without the flag.
           set +e
-          landrun --rox /usr --rox /etc --rw /dev --env PATH -- bash -c 'echo ok' >/dev/null 2>&1; ok=$?
-          landrun --rox /usr --rox /etc --rw /dev --env PATH -- bash -c 'echo x > /etc/landrun-probe' >/dev/null 2>&1; wr=$?
-          landrun --rox /usr --rox /etc --rw /dev --env PATH -- bash -c 'curl -sS --max-time 8 https://example.com >/dev/null' >/dev/null 2>&1; net=$?
+          landrun --rox /usr --rox /etc --rw /dev/null -- bash -c 'echo ok' >/dev/null 2>&1; ok=$?
+          landrun --rox /usr --rox /etc --rw /dev/null -- bash -c 'echo x > /etc/landrun-probe' >/dev/null 2>&1; wr=$?
+          landrun --rox /usr --rox /etc --rw /dev/null -- bash -c 'echo x > /dev/shm/landrun-probe' >/dev/null 2>&1; shm=$?
+          landrun --rox /usr --rox /etc --rw /dev/null -- bash -c 'curl -sS --max-time 8 https://example.com >/dev/null' >/dev/null 2>&1; net=$?
           set -e
-          echo "self-test: run=$ok write-denied=$([ $wr -ne 0 ] && echo yes || echo NO) net-denied=$([ $net -ne 0 ] && echo yes || echo NO)"
-          if [ $ok -ne 0 ] || [ $wr -eq 0 ] || [ $net -eq 0 ]; then
-            echo "::error::landrun is not enforcing (run=$ok write=$wr net=$net); refusing to run PR code"
-            exit 1
+          echo "self-test: run=$ok write=$wr shm=$shm net=$net (nonzero = denied for w/shm/net)"
+          if [ $ok -ne 0 ] || [ $wr -eq 0 ] || [ $shm -eq 0 ] || [ $net -eq 0 ]; then
+            echo "::error::landrun not enforcing (run=$ok write=$wr shm=$shm net=$net); refusing to run PR code"; exit 1
           fi
 
-      - name: Fetch Mathlib via the trusted base checkout (network; no PR code)
-        if: ${{ env.INFRA_PR != '1' }}
-        run: ( cd base && lake exe cache get )
+      - name: Fetch Mathlib with the trusted base config (network; no PR code)
+        if: ${{ env.INFRA != '1' }}
+        run: ( cd base && lake exe cache get ) && mkdir -p base/.lake/tmp
 
-      - name: Stage trusted deps into the PR tree
-        if: ${{ env.INFRA_PR != '1' }}
-        run: |
-          cp -a base/.lake pr/.lake
-          mkdir -p pr/.lake/tmp
-
-      - name: Build PR under landrun (offline, writes confined to pr/.lake)
+      - name: Build (trusted config + overlaid TauCeti/) under landrun, offline
         id: build
-        if: ${{ env.INFRA_PR != '1' }}
-        shell: bash
+        if: ${{ env.INFRA != '1' }}
         run: |
           export PATH="$HOME/.local/bin:$HOME/.elan/bin:$PATH"
-          landrun --rox /usr --rox /etc --rw /dev \
-            --rox "$HOME/.elan" --rox "$PWD/pr" --rw "$PWD/pr/.lake" \
+          landrun --rox /usr --rox /etc \
+            --rw /dev/null --rox /dev/zero --rox /dev/urandom --rox /dev/random \
+            --rox "$HOME/.elan" --rox "$PWD/base" --rw "$PWD/base/.lake" \
             --env PATH --env HOME --env CI \
             -- bash -euxo pipefail -c '
-              cd pr
+              cd base
               export TMPDIR="$PWD/.lake/tmp"
               lake build
               lake exe axioms
@@ -142,10 +151,10 @@ jobs:
         if: always()
         env: { GH_TOKEN: "${{ github.token }}" }
         run: |
-          if [ "${{ env.INFRA_PR }}" = "1" ]; then
-            state=failure; desc="infra change (mathlib/toolchain) — needs human review"
+          if [ "${{ env.INFRA }}" = "1" ]; then
+            state=failure; desc="changes outside TauCeti/ — human review + merge required"
           elif [ "${{ steps.build.outcome }}" = "success" ]; then
-            state=success; desc="sandboxed build + axiom audit passed"
+            state=success; desc="sandboxed build + axiom audit passed (trusted config)"
           else
             state=failure; desc="sandboxed build or axiom audit failed"
           fi
