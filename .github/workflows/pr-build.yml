@@ -35,7 +35,7 @@ jobs:
       # --- Trusted setup: no PR code runs in any step until the landrun build phase ---
       - name: Resolve PR head
         id: pr
-        env: { GH_TOKEN: ${{ github.token }} }
+        env: { GH_TOKEN: "${{ github.token }}" }
         run: |
           if [ "${{ github.event_name }}" = "pull_request_target" ]; then
             NUM='${{ github.event.pull_request.number }}'
@@ -140,7 +140,7 @@ jobs:
 
       - name: Report build status to the PR head commit
         if: always()
-        env: { GH_TOKEN: ${{ github.token }} }
+        env: { GH_TOKEN: "${{ github.token }}" }
         run: |
           if [ "${{ env.INFRA_PR }}" = "1" ]; then
             state=failure; desc="infra change (mathlib/toolchain) — needs human review"
