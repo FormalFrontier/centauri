@@ -1,9 +1,10 @@
 name: CI
 
 on:
+  # PR builds moved to pr-build.yml, which sandboxes untrusted PR code under landrun in a
+  # trusted (base-defined) workflow. This run is only the post-merge health check on main.
   push:
     branches: [main]
-  pull_request:
 
 permissions:
   contents: read

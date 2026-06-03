@@ -13,8 +13,8 @@ name: pr-build
 # overlay logic is re-validated on main.
 
 on:
-  # pull_request_target:
-  #   types: [opened, synchronize, reopened]
+  pull_request_target:
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
     inputs:
       pr: { description: "PR number to build", required: true, type: string }
