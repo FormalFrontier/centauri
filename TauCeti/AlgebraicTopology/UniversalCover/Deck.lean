@@ -90,15 +90,8 @@ action of `E ≃ₜ E` on `E`. -/
 lemma smul_eq_apply (φ : Deck p) (e : E) : φ • e = φ.1 e :=
   rfl
 
-/-- If two deck transformations act the same on every point, they are equal. This reuses
-faithfulness of the ambient action of `E ≃ₜ E` on `E`. -/
-instance instFaithfulSMul : FaithfulSMul (Deck p) E :=
-  ⟨fun h => Subtype.ext <| eq_of_smul_eq_smul h⟩
-
-/-- Each deck transformation acts continuously on the total space, reusing continuity of the
-ambient action of `E ≃ₜ E` on `E`. -/
-instance instContinuousConstSMul : ContinuousConstSMul (Deck p) E :=
-  ⟨fun φ => continuous_const_smul (φ : E ≃ₜ E)⟩
+-- `FaithfulSMul (Deck p) E` and `ContinuousConstSMul (Deck p) E` are inherited from the generic
+-- subgroup instances in `TauCeti.Topology.Algebra.HomeomorphAction`; `Deck p` is a `Subgroup`.
 
 end Deck
 

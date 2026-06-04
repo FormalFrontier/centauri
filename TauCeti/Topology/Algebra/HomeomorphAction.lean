@@ -45,6 +45,18 @@ instance applyFaithfulSMul : FaithfulSMul (E ≃ₜ E) E :=
 instance applyContinuousConstSMul : ContinuousConstSMul (E ≃ₜ E) E :=
   ⟨fun φ => φ.continuous⟩
 
+/-- A subgroup of the homeomorphism group acts faithfully on `E`. Mathlib transfers the
+`MulAction` to a subgroup of `E ≃ₜ E` but not faithfulness, so we record it here from the
+ambient faithful action. Any `Subgroup (E ≃ₜ E)` — e.g. the deck transformation group of a
+map — inherits this rather than carrying its own instance. -/
+instance applySubgroupFaithfulSMul (H : Subgroup (E ≃ₜ E)) : FaithfulSMul H E :=
+  ⟨fun h => Subtype.ext <| eq_of_smul_eq_smul h⟩
+
+/-- A subgroup of the homeomorphism group acts continuously on `E` in the point, reusing
+continuity of the ambient action. -/
+instance applySubgroupContinuousConstSMul (H : Subgroup (E ≃ₜ E)) : ContinuousConstSMul H E :=
+  ⟨fun φ => continuous_const_smul (φ : E ≃ₜ E)⟩
+
 end Homeomorph
 
 end TauCeti
