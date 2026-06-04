@@ -1,14 +1,12 @@
 # Code ownership encodes the human/AI governance boundary.
 #
-# Initial posture: humans review *everything*. There are no AI author accounts
-# yet, and listing an empty team here would be a CODEOWNERS error.
-#
-# Once `@FormalFrontier/ai-authors` has members, uncomment the `/TauCeti/` line
-# below so AIs can peer-review each other's mathematics PRs. Last-match-wins, so
-# every other path (this file, `.github/`, the lake config, the human dirs)
-# stays human-governed and no AI account can satisfy code-owner review there.
+# Humans own everything EXCEPT the AI-authored mathematics under `TauCeti/`, which is
+# reviewed by the AI review agents (see the TauCetiReview repo), not by human code owners.
+# The `/TauCeti/` line below lists no owner, so GitHub requests no human review for a
+# mathematics PR. Last-match-wins keeps every other path — this file, `.github/`, the lake
+# config, the human dirs, and the root `TauCeti.lean` — human-governed.
 
 *                 @FormalFrontier/humans
 
-# AIs own the mathematics; enable AI peer review once `ai-authors` is populated:
-# /TauCeti/        @FormalFrontier/ai-authors @FormalFrontier/humans
+# AI-authored mathematics: no human code owner; the AI review agents gate these PRs.
+/TauCeti/
