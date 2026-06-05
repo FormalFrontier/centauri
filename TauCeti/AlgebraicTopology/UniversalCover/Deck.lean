@@ -51,14 +51,19 @@ namespace Deck
 
 variable {p : E → X}
 
+/-- Membership in `Deck p` means commuting with the projection map `p`. -/
 theorem mem_iff {h : E ≃ₜ E} : h ∈ Deck p ↔ p ∘ h = p := Iff.rfl
 
+/-- A deck transformation commutes with the projection map `p` after coercion to a
+homeomorphism. -/
 @[simp]
 theorem comp_eq (h : Deck p) : p ∘ (h : E ≃ₜ E) = p := h.2
 
+/-- The action of a deck transformation preserves the projection: `p (h • e) = p e`. -/
 theorem proj_smul (h : Deck p) (e : E) : p (h • e) = p e :=
   congrFun h.2 e
 
+/-- The action of `Deck p` on `E` is continuous in the point being acted on. -/
 instance : ContinuousConstSMul (Deck p) E :=
   ⟨fun h ↦ (h : E ≃ₜ E).continuous⟩
 

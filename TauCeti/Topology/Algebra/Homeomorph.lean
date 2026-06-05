@@ -16,6 +16,10 @@ These instances are vendored from the Mathlib draft
 [#40135](https://github.com/leanprover-community/mathlib4/pull/40135) by Kim Morrison
 (originally additions to `Mathlib/Topology/Algebra/ConstMulAction.lean`), since they are not
 yet in the pinned Mathlib.
+
+This is provisional compatibility API. When the pinned Mathlib provides the upstream
+declarations, Tau Ceti should replace these implementations with deprecated aliases where
+possible, rather than silently removing names that downstream files may have imported.
 -/
 
 namespace TauCeti
@@ -30,13 +34,15 @@ instance Homeomorph.applyMulAction : MulAction (Y ≃ₜ Y) Y where
   one_smul _ := rfl
   mul_smul _ _ _ := rfl
 
+/-- The tautological scalar action of a self-homeomorphism is evaluation. -/
 @[simp]
 protected theorem Homeomorph.smul_def (f : Y ≃ₜ Y) (x : Y) : f • x = f x := rfl
 
 /-- `Homeomorph.applyMulAction` is faithful. -/
 instance Homeomorph.applyFaithfulSMul : FaithfulSMul (Y ≃ₜ Y) Y := ⟨Homeomorph.ext⟩
 
-/-- `Homeomorph.applyMulAction` is continuous in the second variable. -/
+/-- Vendored compatibility instance: `Homeomorph.applyMulAction` is continuous in the second
+variable. -/
 instance Homeomorph.continuousConstSMul : ContinuousConstSMul (Y ≃ₜ Y) Y :=
   ⟨fun h ↦ h.continuous⟩
 
