@@ -236,7 +236,7 @@ the constant path at `a` (`initialSegmentFamily_zero`); at `t = 1` it is `γ` it
 trivial right-endpoint cast (`initialSegmentFamily_one`). The property consumers actually need
 is joint continuity in `(t, s)`, recorded as `continuous_initialSegmentFamily_uncurry` and used
 to build the rung homotopy in `joinedIn_preimage_of_append`. -/
-@[expose] public noncomputable def initialSegmentFamily {a b : X} (γ : Path a b) (t : I) :
+public noncomputable def initialSegmentFamily {a b : X} (γ : Path a b) (t : I) :
     Path a (γ t) :=
   (γ.truncate 0 t).cast (by rw [min_eq_left t.2.1, γ.extend_zero]) (γ.extend_apply t.2).symm
 
@@ -281,16 +281,16 @@ at `t = 1` it is `γ` itself. Joint continuity in `t` is `continuous_initialSegm
     γ.initialSegmentFamily 1 = γ := by
   rw [initialSegmentFamily, Path.initialSegmentFamily_one, ofPath_cast, ofPath_toPath_self]
 
-@[simp] public theorem endpoint_initialSegmentFamily {x₀ : X} (γ : BasedPath x₀) (t : I) :
-    endpoint (γ.initialSegmentFamily t) = γ.1 t := by
-  simp [initialSegmentFamily]
-
 public theorem toPath_initialSegmentFamily {x₀ : X} (γ : BasedPath x₀) (t : I) :
     (γ.initialSegmentFamily t).toPath =
       (γ.toPath.initialSegmentFamily t).cast rfl (γ.toPath.initialSegmentFamily t).target := by
   change (ofPath (γ.toPath.initialSegmentFamily t)).toPath =
     (γ.toPath.initialSegmentFamily t).cast rfl (γ.toPath.initialSegmentFamily t).target
   exact toPath_ofPath (γ.toPath.initialSegmentFamily t)
+
+@[simp] public theorem endpoint_initialSegmentFamily {x₀ : X} (γ : BasedPath x₀) (t : I) :
+    endpoint (γ.initialSegmentFamily t) = γ.1 t := by
+  simp [initialSegmentFamily]
 
 public theorem continuous_initialSegmentFamily {x₀ : X} (γ : BasedPath x₀) :
     Continuous γ.initialSegmentFamily := by
