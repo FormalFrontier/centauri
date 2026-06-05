@@ -186,6 +186,14 @@ lemma map_toAlgHom (f : A →ₐc[k] B) :
   ext x
   simp [map]
 
+/-- The underlying coalgebra homomorphism of scalar extension is the usual tensor-product map. -/
+@[simp]
+lemma map_toCoalgHom (f : A →ₐc[k] B) :
+    (map (K := K) f : HopfAlgebra.baseChange k K A →ₗc[K] HopfAlgebra.baseChange k K B) =
+      Coalgebra.TensorProduct.map (BialgHom.id K K : K →ₗc[K] K) (f : A →ₗc[k] B) := by
+  ext x
+  simp [map]
+
 end Map
 
 section HopfMap
