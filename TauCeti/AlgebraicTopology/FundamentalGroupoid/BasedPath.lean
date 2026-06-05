@@ -64,6 +64,10 @@ public instance : TopologicalSpace (BasedPath x₀) :=
 /-- The endpoint of a based path. -/
 @[expose] public def endpoint (γ : BasedPath x₀) : X := γ.1 1
 
+/-- The endpoint map from based paths to their terminal point is continuous. -/
+public theorem continuous_endpoint : Continuous (endpoint (x₀ := x₀)) :=
+  (continuous_eval_const (1 : I)).comp continuous_induced_dom
+
 /-- View a based path as a path to its endpoint. -/
 @[expose] public def toPath (γ : BasedPath x₀) : Path x₀ (endpoint γ) where
   toContinuousMap := γ.1
@@ -598,6 +602,7 @@ public theorem exists_open_nhd_pathComponent_preimage
       ∀ β ∈ N, JoinedIn (endpoint (x₀ := x₀) ⁻¹' U) α β := by
   classical
   obtain ⟨n, part, T, hα_tube⟩ := α.toPath.exists_partition_in_slsc_neighborhoods
+    (SemilocallySimplyConnectedOn.of_semilocallySimplyConnectedSpace (Set.range α.toPath))
   -- Rule out `n = 0`; the rest of the proof assumes `n = n' + 1`.
   match n, part, T, hα_tube with
   | 0, part, _, _ => exact isEmptyElim part
@@ -673,6 +678,7 @@ public theorem exists_open_nhd_pathComponent_preimage
       Path.tube_subset_homotopy_class_source α.toPath part T' hα_tube' β.toPath hβ_tube
     have hρ_final_range : Set.range ρ_final ⊆ U :=
       hρ_final_range_V.trans (by
+        -- `T'.V` is defeq to the local family `V'`; expose it so `hV'_last_eq` rewrites.
         change V' (Fin.last (n' + 1)) ⊆ U
         rw [hV'_last_eq]
         exact hV'_sub_U)

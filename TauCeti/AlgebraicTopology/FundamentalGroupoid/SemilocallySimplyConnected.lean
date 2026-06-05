@@ -366,6 +366,11 @@ public lemma PathInTube.subpathOn_range_subset {X : Type*} [TopologicalSpace X] 
     (part : IntervalPartition n) (T : TubeData X n) : Set (Path x y) :=
   {γ | PathInTube γ part T}
 
+public theorem TubeData.mem_toSet_iff {X : Type*} [TopologicalSpace X] {x y : X} {n : ℕ}
+    (part : IntervalPartition n) (T : TubeData X n) (γ : Path x y) :
+    γ ∈ T.toSet part ↔ PathInTube γ part T :=
+  Iff.rfl
+
 /-- Given segment neighborhoods covering each subpath of `γ`, construct the vertex neighborhoods
 as path components of the finite intersections of adjacent segment neighborhoods. -/
 private theorem Path.exists_vertexNeighborhood_family [LocPathConnectedSpace X]
@@ -418,29 +423,22 @@ private theorem Path.exists_vertexNeighborhood_family [LocPathConnectedSpace X]
   · intro i
     exact hV_right i.succ i rfl
 
-/-- In an SLSC space, given a path γ, there exists a tubular neighborhood structure
-such that γ stays in the tube. This uses compactness of the path's image and the
-Lebesgue number lemma. -/
-public theorem Path.exists_partition_in_slsc_neighborhoods [SemilocallySimplyConnectedSpace X]
-    [LocPathConnectedSpace X] {x y : X} (γ : Path x y) :
+/-- If `X` is SLSC along the range of `γ`, then `γ` has tube data around it. -/
+public theorem Path.exists_partition_in_slsc_neighborhoods [LocPathConnectedSpace X] {x y : X}
+    (γ : Path x y) (hslsc : SemilocallySimplyConnectedOn (Set.range γ)) :
     ∃ (n : ℕ) (part : IntervalPartition n) (T : TubeData X n), PathInTube γ part T := by
-  -- Apply the generic partition lemma with the property:
-  -- "U is path-connected and paths in U with same endpoints are homotopic"
   obtain ⟨n, t, h_mono, h_start, h_end, h_partition⟩ := γ.exists_partition_with_property
     (fun U ↦ IsPathConnected U ∧ IsPathHomotopyTrivial U)
-    (fun z _ ↦ exists_pathConnected_slsc_neighborhood z)
-  -- Extract U sets from the partition using choice
+    (fun z hz ↦ (hslsc.at hz).exists_pathConnected_slsc_neighborhood)
   choose U hU_open hU_prop hU_contains using h_partition
   obtain ⟨V, hV_open, hV_pathConn, hγ_in_V, hV_left, hV_right⟩ :=
     Path.exists_vertexNeighborhood_family h_mono hU_open hU_contains
-  -- Construct IntervalPartition
   let part : IntervalPartition n := {
     t := t
     mono := h_mono
     t_zero := h_start
     t_last := h_end
   }
-  -- Construct TubeData
   let T : TubeData X n := {
     U := U
     V := V
@@ -451,7 +449,6 @@ public theorem Path.exists_partition_in_slsc_neighborhoods [SemilocallySimplyCon
     V_left_subset := hV_left
     V_right_subset := hV_right
   }
-  -- Prove PathInTube
   refine ⟨n, part, T, ?_⟩
   exact { stays_in_U := hU_contains, passes_through_V := hγ_in_V }
 
@@ -468,7 +465,7 @@ public theorem TubeData.isOpen {x y : X} {n : ℕ}
       (part.t i.castSucc : ℝ) ≤ s ∧ s ≤ (part.t i.succ : ℝ) → γ' s ∈ T.U i} ∩
     {γ' : Path x y | ∀ j, γ' (part.t j) ∈ T.V j} := by
     ext γ'
-    simp only [TubeData.toSet, Set.mem_setOf_eq, Set.mem_inter_iff]
+    simp only [TubeData.mem_toSet_iff, Set.mem_setOf_eq, Set.mem_inter_iff]
     constructor
     · intro h
       exact ⟨h.stays_in_U, h.passes_through_V⟩
@@ -941,7 +938,8 @@ public theorem Path.exists_open_tubular_neighborhood_in_homotopy_class
     ∃ (T : Set (Path x y)), IsOpen T ∧ p ∈ T ∧ T ⊆ {p' | Path.Homotopic p' p} := by
   -- Step 1: Get partition and SLSC neighborhoods
   obtain ⟨n, part, T_data, hp_in_tube⟩ :=
-    Path.exists_partition_in_slsc_neighborhoods p
+    p.exists_partition_in_slsc_neighborhoods
+      (SemilocallySimplyConnectedOn.of_semilocallySimplyConnectedSpace (Set.range p))
   -- Step 2: The tube T is just T_data.toSet part
   refine ⟨T_data.toSet part, ?_, ?_, ?_⟩
   · -- Show T is open
