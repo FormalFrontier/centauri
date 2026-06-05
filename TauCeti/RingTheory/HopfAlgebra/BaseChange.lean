@@ -51,28 +51,6 @@ lemma includeRight_apply [Algebra k A] (a : A) :
   rfl
 
 @[simp]
-lemma includeRight_one [Algebra k A] :
-    includeRight (k := k) (K := K) (A := A) 1 = 1 :=
-  rfl
-
-@[simp]
-lemma includeRight_zero [Algebra k A] :
-    includeRight (k := k) (K := K) (A := A) 0 = 0 :=
-  map_zero _
-
-@[simp]
-lemma includeRight_add [Algebra k A] (a b : A) :
-    includeRight (k := k) (K := K) (a + b) =
-      includeRight (k := k) (K := K) a + includeRight (k := k) (K := K) b :=
-  map_add _ _ _
-
-@[simp]
-lemma includeRight_mul [Algebra k A] (a b : A) :
-    includeRight (k := k) (K := K) (a * b) =
-      includeRight (k := k) (K := K) a * includeRight (k := k) (K := K) b :=
-  map_mul _ _ _
-
-@[simp]
 lemma includeRight_algebraMap [Algebra k A] (r : k) :
     includeRight (k := k) (K := K) (A := A) (algebraMap k A r) =
       algebraMap K (HopfAlgebra.baseChange k K A) (algebraMap k K r) := by
