@@ -7,11 +7,11 @@ import Mathlib.Algebra.Category.Grp.Basic
 import TauCeti.Algebra.AlgebraicGroup.FunctorOfPoints
 
 /-!
-# The functor of points of a commutative Hopf algebra
+# The functor of points of a Hopf algebra
 
-For a commutative Hopf algebra `H` over a commutative ring `R`, the `A`-points of the affine
-group scheme represented by `H` are the `R`-algebra homomorphisms `H →ₐ[R] A`, equipped with
-the convolution group structure. This file packages that construction as a functor
+For a Hopf algebra `H` over a commutative ring `R`, and a commutative `R`-algebra `A`, the
+`A`-points of `H` are the `R`-algebra homomorphisms `H →ₐ[R] A`, equipped with the convolution
+group structure. This file packages that construction as a functor
 
 `CommAlgCat R ⥤ GrpCat`.
 
@@ -21,7 +21,7 @@ needed to use those groups as the functor-of-points view in the reductive-groups
 
 ## Main definitions
 
-* `HopfAlgebra.pointsFunctor`: for a commutative Hopf algebra `H`, the functor sending a
+* `HopfAlgebra.pointsFunctor`: for a Hopf algebra `H`, the functor sending a
   commutative `R`-algebra `A` to the convolution group on `H →ₐ[R] A`.
 
 ## References
@@ -39,9 +39,9 @@ namespace HopfAlgebra
 
 universe u v w
 
-variable (R : Type u) [CommRing R] (H : Type v) [CommRing H] [_root_.HopfAlgebra R H]
+variable (R : Type u) [CommRing R] (H : Type v) [Semiring H] [_root_.HopfAlgebra R H]
 
-/-- The functor of points of the affine group represented by a commutative Hopf algebra `H`.
+/-- The functor of points of a Hopf algebra `H`.
 
 It sends a commutative `R`-algebra `A` to the convolution group on algebra homomorphisms
 `H →ₐ[R] A`, and sends an algebra map `A ⟶ B` to post-composition with that map. -/
@@ -72,22 +72,6 @@ lemma map_apply {A B : CommAlgCat.{w} R} (φ : A ⟶ B)
     (f : WithConv (H →ₐ[R] A)) (h : H) :
     (((pointsFunctor R H).map φ f : WithConv (H →ₐ[R] B)).ofConv h) =
       φ.hom (f.ofConv h) := by
-  rfl
-
-/-- On the identity algebra map, the functor of points is the identity group homomorphism. -/
-@[simp]
-lemma map_id_apply (A : CommAlgCat.{w} R) (f : WithConv (H →ₐ[R] A)) :
-    (pointsFunctor R H).map (𝟙 A) f = f := by
-  simp
-  rfl
-
-/-- The functor of points respects composition of algebra maps. -/
-@[simp]
-lemma map_comp_apply {A B C : CommAlgCat.{w} R} (φ : A ⟶ B) (ψ : B ⟶ C)
-    (f : WithConv (H →ₐ[R] A)) :
-    (pointsFunctor R H).map (φ ≫ ψ) f =
-      (pointsFunctor R H).map ψ ((pointsFunctor R H).map φ f) := by
-  simp
   rfl
 
 end PointsFunctor
