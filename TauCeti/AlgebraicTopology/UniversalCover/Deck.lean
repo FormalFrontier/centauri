@@ -3,6 +3,7 @@ Copyright (c) 2026 The Tau Ceti contributors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
 import Mathlib.Topology.Homeomorph.Lemmas
+import Mathlib.GroupTheory.GroupAction.Quotient
 import TauCeti.Topology.Algebra.HomeomorphAction
 
 /-!
@@ -17,6 +18,12 @@ The action of `Deck p` on the total space is inherited, by subgroup transfer, fr
 tautological action of the ambient homeomorphism group `E ≃ₜ E` on `E`
 (`TauCeti.Homeomorph.applyMulAction`). Each deck transformation preserves `p`, hence
 preserves every fibre of `p`.
+
+The final section records the quotient bookkeeping for this action: the projection `p`
+descends to the orbit quotient by `Deck p`, and this descended map is an equivalence exactly
+when the fibres of `p` are the orbits of the deck action. This is the set-level part of the
+quotient comparison needed in the universal-covers roadmap after identifying
+`Deck (UniversalCover.proj x₀)` with the fundamental group action.
 
 ## References
 
@@ -92,6 +99,102 @@ action of `E ≃ₜ E` on `E`. -/
 @[simp]
 lemma smul_eq_apply (φ : Deck p) (e : E) : φ • e = φ.1 e :=
   rfl
+
+/-- The action of a deck transformation preserves the projection map pointwise. -/
+lemma proj_smul (φ : Deck p) (e : E) : p (φ • e) = p e := by
+  rw [smul_eq_apply]
+  exact map_proj φ e
+
+/-- Acting by a deck transformation keeps a point in the same fibre. -/
+lemma smul_mem_fiber (φ : Deck p) (e : E) : φ • e ∈ p ⁻¹' {p e} := by
+  exact proj_smul φ e
+
+/-- The deck orbit of a point is contained in its fibre. -/
+lemma orbit_subset_fiber (e : E) : MulAction.orbit (Deck p) e ⊆ p ⁻¹' {p e} := by
+  intro e' he'
+  rcases MulAction.mem_orbit_iff.mp he' with ⟨φ, rfl⟩
+  exact smul_mem_fiber φ e
+
+/-- If two points lie in the same deck orbit, then they have the same image under `p`. -/
+lemma eq_proj_of_mem_orbit {e₁ e₂ : E} (h : e₁ ∈ MulAction.orbit (Deck p) e₂) :
+    p e₁ = p e₂ :=
+  orbit_subset_fiber (p := p) e₂ h
+
+/-- Equality under `p` is equivalent to lying in the same deck orbit, provided every fibre is
+a single deck orbit. This packages the freeness/transitivity condition used by quotient-cover
+arguments. -/
+lemma proj_eq_iff_mem_orbit
+    (h : ∀ {e₁ e₂ : E}, p e₁ = p e₂ → e₁ ∈ MulAction.orbit (Deck p) e₂) {e₁ e₂ : E} :
+    p e₁ = p e₂ ↔ e₁ ∈ MulAction.orbit (Deck p) e₂ :=
+  ⟨h, eq_proj_of_mem_orbit (p := p)⟩
+
+/-- If the projection has fibre-orbit equality, the quotient relation for the deck action is
+the same as equality of projections. -/
+lemma orbitRel_iff_proj_eq
+    (h : ∀ {e₁ e₂ : E}, p e₁ = p e₂ → e₁ ∈ MulAction.orbit (Deck p) e₂) {e₁ e₂ : E} :
+    MulAction.orbitRel (Deck p) E e₁ e₂ ↔ p e₁ = p e₂ := by
+  rw [MulAction.orbitRel_apply]
+  exact (proj_eq_iff_mem_orbit (p := p) h).symm
+
+/-- The projection `p` descends to the quotient of `E` by the deck action. -/
+def orbitProj : MulAction.orbitRel.Quotient (Deck p) E → B :=
+  Quotient.lift p fun e₁ e₂ h => by
+    exact eq_proj_of_mem_orbit (p := p) (MulAction.orbitRel_apply.mp h)
+
+/-- The descended projection sends the orbit of `e` to `p e`. -/
+@[simp]
+lemma orbitProj_mk (e : E) :
+    orbitProj (p := p) (Quotient.mk'' e : MulAction.orbitRel.Quotient (Deck p) E) = p e := by
+  rfl
+
+/-- The descended projection is surjective when the original projection is surjective. -/
+lemma orbitProj_surjective (hp : Function.Surjective p) :
+    Function.Surjective (orbitProj (p := p)) :=
+  Quotient.lift_surjective p _ hp
+
+/-- The descended projection is injective when each fibre of `p` is a deck orbit. -/
+lemma orbitProj_injective
+    (h : ∀ {e₁ e₂ : E}, p e₁ = p e₂ → e₁ ∈ MulAction.orbit (Deck p) e₂) :
+    Function.Injective (orbitProj (p := p)) := by
+  intro q r hqr
+  induction q using Quotient.inductionOn
+  induction r using Quotient.inductionOn
+  apply Quotient.sound
+  rw [orbitProj_mk, orbitProj_mk] at hqr
+  exact (orbitRel_iff_proj_eq (p := p) h).mpr hqr
+
+/-- If `p` is surjective and its fibres are exactly the deck orbits, then the orbit quotient
+by `Deck p` is equivalent to the base. This is the set-level quotient comparison used before
+upgrading to a homeomorphism in covering-space applications. -/
+noncomputable def orbitProjEquiv (hp : Function.Surjective p)
+    (h : ∀ {e₁ e₂ : E}, p e₁ = p e₂ → e₁ ∈ MulAction.orbit (Deck p) e₂) :
+    MulAction.orbitRel.Quotient (Deck p) E ≃ B :=
+  Equiv.ofBijective (orbitProj (p := p))
+    ⟨orbitProj_injective (p := p) h, orbitProj_surjective (p := p) hp⟩
+
+/-- The equivalence induced by the descended deck-orbit projection sends the orbit of `e` to
+`p e`. -/
+@[simp]
+lemma orbitProjEquiv_apply (hp : Function.Surjective p)
+    (h : ∀ {e₁ e₂ : E}, p e₁ = p e₂ → e₁ ∈ MulAction.orbit (Deck p) e₂) (e : E) :
+    orbitProjEquiv (p := p) hp h
+      (Quotient.mk'' e : MulAction.orbitRel.Quotient (Deck p) E) = p e := by
+  simp [orbitProjEquiv]
+
+/-- A point of the base is the image of any representative of its preimage under the inverse
+of the deck-orbit quotient equivalence. -/
+lemma proj_orbitProjEquiv_symm (hp : Function.Surjective p)
+    (h : ∀ {e₁ e₂ : E}, p e₁ = p e₂ → e₁ ∈ MulAction.orbit (Deck p) e₂) (b : B) :
+    p ((orbitProjEquiv (p := p) hp h).symm b).out = b := by
+  let q := (orbitProjEquiv (p := p) hp h).symm b
+  have hb : orbitProj (p := p) q = b := (orbitProjEquiv (p := p) hp h).apply_symm_apply b
+  calc
+    p q.out = orbitProj (p := p)
+        (Quotient.mk'' q.out : MulAction.orbitRel.Quotient (Deck p) E) := by
+      exact (orbitProj_mk (p := p) q.out).symm
+    _ = orbitProj (p := p) q := by
+      rw [Quotient.out_eq' q]
+    _ = b := hb
 
 -- `FaithfulSMul (Deck p) E` and `ContinuousConstSMul (Deck p) E` are inherited from the generic
 -- subgroup instances in `TauCeti.Topology.Algebra.HomeomorphAction`; `Deck p` is a `Subgroup`.
