@@ -31,58 +31,43 @@ open InnerProductSpace
 variable {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V] [CompleteSpace V]
 variable {B : V →L[ℝ] V →L[ℝ] ℝ}
 
-/-- The Fréchet-Riesz representative of a continuous linear functional on a real Hilbert
-space. -/
-def rieszRepresentative (ℓ : StrongDual ℝ V) : V :=
-  (toDual ℝ V).symm ℓ
-
-/-- The Riesz representative evaluates against a vector by the inner product. -/
-@[simp]
-lemma inner_rieszRepresentative (ℓ : StrongDual ℝ V) (v : V) :
-    ⟪rieszRepresentative ℓ, v⟫_ℝ = ℓ v :=
-  toDual_symm_apply
-
 /-- The weak solution of the abstract variational equation associated to a coercive bilinear
 form and a continuous linear functional.
 
 It is the inverse image, under the Lax-Milgram operator associated to `B`, of the
 Fréchet-Riesz representative of `ℓ`. -/
 def solution (hB : IsCoercive B) (ℓ : StrongDual ℝ V) : V :=
-  hB.continuousLinearEquivOfBilin.symm (rieszRepresentative ℓ)
+  hB.continuousLinearEquivOfBilin.symm ((toDual ℝ V).symm ℓ)
 
 /-- Applying the Lax-Milgram operator to the variational solution gives the Riesz
 representative of the right-hand side. -/
 @[simp]
 lemma continuousLinearEquivOfBilin_solution (hB : IsCoercive B) (ℓ : StrongDual ℝ V) :
-    hB.continuousLinearEquivOfBilin (solution hB ℓ) = rieszRepresentative ℓ := by
+    hB.continuousLinearEquivOfBilin (solution hB ℓ) = (toDual ℝ V).symm ℓ := by
   simp [solution]
 
 /-- The variational solution solves `B u v = ℓ v` for every test vector `v`. -/
+@[simp]
 lemma solution_spec (hB : IsCoercive B) (ℓ : StrongDual ℝ V) (v : V) :
     B (solution hB ℓ) v = ℓ v := by
-  rw [← inner_rieszRepresentative ℓ v, ← continuousLinearEquivOfBilin_solution hB ℓ]
+  rw [← toDual_symm_apply (𝕜 := ℝ) (E := V) (x := v) (y := ℓ),
+    ← continuousLinearEquivOfBilin_solution hB ℓ]
   exact (hB.continuousLinearEquivOfBilin_apply (solution hB ℓ) v).symm
 
 /-- A vector satisfying the variational equation is the Lax-Milgram solution. -/
 lemma eq_solution_of_forall_apply_eq (hB : IsCoercive B) (ℓ : StrongDual ℝ V) {u : V}
     (hu : ∀ v, B u v = ℓ v) :
     u = solution hB ℓ := by
-  let r := rieszRepresentative ℓ
+  let r := (toDual ℝ V).symm ℓ
   have hr : r = hB.continuousLinearEquivOfBilin u := by
     refine hB.unique_continuousLinearEquivOfBilin ?_
     intro v
-    rw [inner_rieszRepresentative, hu]
+    rw [toDual_symm_apply (𝕜 := ℝ) (E := V), hu]
   calc
     u = hB.continuousLinearEquivOfBilin.symm (hB.continuousLinearEquivOfBilin u) := by
       exact (hB.continuousLinearEquivOfBilin.symm_apply_apply u).symm
     _ = hB.continuousLinearEquivOfBilin.symm r := by rw [← hr]
     _ = solution hB ℓ := rfl
-
-/-- The variational equation associated to a coercive bilinear form has at most one solution. -/
-lemma solution_unique (hB : IsCoercive B) (ℓ : StrongDual ℝ V) {u : V}
-    (hu : ∀ v, B u v = ℓ v) :
-    u = solution hB ℓ :=
-  eq_solution_of_forall_apply_eq hB ℓ hu
 
 /-- Two vectors satisfying the same variational equation are equal. -/
 lemma eq_of_forall_apply_eq_of_forall_apply_eq (hB : IsCoercive B) {ℓ : StrongDual ℝ V}
@@ -108,7 +93,7 @@ lemma eq_zero_of_forall_apply_eq_zero (hB : IsCoercive B) {u : V}
   have hzero : u = solution hB (0 : StrongDual ℝ V) := by
     refine eq_solution_of_forall_apply_eq hB 0 ?_
     simpa using hu
-  simpa [solution, rieszRepresentative] using hzero
+  simpa [solution] using hzero
 
 /-- The solution for the zero functional is zero. -/
 @[simp]
