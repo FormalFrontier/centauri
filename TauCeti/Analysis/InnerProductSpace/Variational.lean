@@ -28,7 +28,9 @@ namespace Variational
 
 open InnerProductSpace
 
-variable {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V]
+section Uniqueness
+
+variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V]
 variable {B : V →L[ℝ] V →L[ℝ] ℝ}
 
 /-- A coercive bilinear variational equation with zero right-hand side has only the zero
@@ -54,6 +56,12 @@ lemma eq_of_forall_apply_eq_of_forall_apply_eq (hB : IsCoercive B) {ℓ : Strong
   intro v
   simp [hu₁ v, hu₂ v]
 
+end Uniqueness
+
+section Solution
+
+variable {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V]
+variable {B : V →L[ℝ] V →L[ℝ] ℝ}
 variable [CompleteSpace V]
 
 /-- The weak solution of the abstract variational equation associated to a coercive bilinear
@@ -139,6 +147,8 @@ lemma solution_neg (hB : IsCoercive B) (ℓ : StrongDual ℝ V) :
 lemma solution_sub (hB : IsCoercive B) (ℓ₁ ℓ₂ : StrongDual ℝ V) :
     solution hB (ℓ₁ - ℓ₂) = solution hB ℓ₁ - solution hB ℓ₂ := by
   exact (solutionCLM hB).map_sub ℓ₁ ℓ₂
+
+end Solution
 
 end Variational
 
