@@ -56,6 +56,8 @@ class Comodule (R : Type u) (C : Type v) (M : Type w) [CommSemiring R]
 
 namespace Comodule
 
+attribute [simp] Comodule.lTensor_counit_comp_coact
+
 variable {R : Type u} {C : Type v} {M : Type w} {N : Type x}
 variable [CommSemiring R]
 variable [AddCommMonoid C] [Module R C] [Coalgebra R C]
@@ -78,18 +80,11 @@ theorem coassoc_apply (m : M) :
       Coalgebra.comul.lTensor M (coact m) :=
   LinearMap.congr_fun (coact_coassoc (R := R) (C := C) (M := M)) m
 
-/-- The counit law of the coaction, as an equality of linear maps. -/
-@[simp]
-theorem coact_counit :
-    Coalgebra.counit.lTensor M ∘ₗ (coact (R := R) (C := C) (M := M)) =
-      (TensorProduct.mk R M R).flip 1 :=
-  Comodule.lTensor_counit_comp_coact
-
 /-- The counit law of the coaction, evaluated at a vector. -/
 @[simp]
-theorem counit_apply (m : M) :
+theorem lTensor_counit_coact (m : M) :
     Coalgebra.counit.lTensor M (coact (R := R) (C := C) (M := M) m) = m ⊗ₜ[R] 1 :=
-  LinearMap.congr_fun (coact_counit (R := R) (C := C) (M := M)) m
+  LinearMap.congr_fun (Comodule.lTensor_counit_comp_coact (R := R) (C := C) (M := M)) m
 
 variable (R C) in
 /-- The regular right comodule of a coalgebra over itself, with coaction given by the
