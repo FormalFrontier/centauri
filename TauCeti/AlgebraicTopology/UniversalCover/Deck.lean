@@ -18,6 +18,10 @@ tautological action of the ambient homeomorphism group `E ≃ₜ E` on `E`
 (`TauCeti.Homeomorph.applyMulAction`). Each deck transformation preserves `p`, hence
 preserves every fibre of `p`.
 
+A homeomorphism between two total spaces over the same base also transports deck
+transformations by conjugation. This is the small bookkeeping API needed before comparing
+deck groups of isomorphic covers.
+
 ## References
 
 This file follows the deck-transformation target in the Tau Ceti universal-covers roadmap,
@@ -95,6 +99,94 @@ lemma smul_eq_apply (φ : Deck p) (e : E) : φ • e = φ.1 e :=
 
 -- `FaithfulSMul (Deck p) E` and `ContinuousConstSMul (Deck p) E` are inherited from the generic
 -- subgroup instances in `TauCeti.Topology.Algebra.HomeomorphAction`; `Deck p` is a `Subgroup`.
+
+variable {F : Type*} [TopologicalSpace F] {q : F → B}
+
+/-- The compatibility condition for the inverse of a homeomorphism of total spaces over a
+common base. -/
+lemma projection_symm_eq (e : E ≃ₜ F) (h : ∀ x, q (e x) = p x) (y : F) :
+    p (e.symm y) = q y := by
+  calc
+    p (e.symm y) = q (e (e.symm y)) := (h (e.symm y)).symm
+    _ = q y := by simp
+
+/-- Conjugating by a homeomorphism of total spaces over the same base sends deck
+transformations of `p` to deck transformations of `q`. -/
+def conj (e : E ≃ₜ F) (h : ∀ x, q (e x) = p x) (φ : Deck p) : Deck q where
+  val := (e.symm.trans φ.1).trans e
+  property y := by
+    calc
+      q (((e.symm.trans φ.1).trans e) y) = q (e (φ.1 (e.symm y))) := rfl
+      _ = p (φ.1 (e.symm y)) := h (φ.1 (e.symm y))
+      _ = p (e.symm y) := map_proj φ (e.symm y)
+      _ = q y := projection_symm_eq e h y
+
+/-- The underlying map of the conjugated deck transformation. -/
+@[simp]
+lemma conj_apply (e : E ≃ₜ F) (h : ∀ x, q (e x) = p x) (φ : Deck p) (y : F) :
+    (conj e h φ).1 y = e (φ.1 (e.symm y)) :=
+  rfl
+
+/-- The inverse underlying map of the conjugated deck transformation. -/
+@[simp]
+lemma conj_symm_apply (e : E ≃ₜ F) (h : ∀ x, q (e x) = p x) (φ : Deck p) (y : F) :
+    (conj e h φ).1.symm y = e (φ.1.symm (e.symm y)) :=
+  rfl
+
+/-- Conjugating the identity deck transformation gives the identity deck transformation. -/
+@[simp]
+lemma conj_one (e : E ≃ₜ F) (h : ∀ x, q (e x) = p x) :
+    conj e h (1 : Deck p) = 1 := by
+  ext y
+  simp [conj]
+
+/-- Conjugation by a homeomorphism over the base respects multiplication of deck
+transformations. -/
+@[simp]
+lemma conj_mul (e : E ≃ₜ F) (h : ∀ x, q (e x) = p x) (φ ψ : Deck p) :
+    conj e h (φ * ψ) = conj e h φ * conj e h ψ := by
+  ext y
+  simp [conj]
+
+/-- A homeomorphism of total spaces over a common base identifies the two deck groups by
+conjugation. This is the deck-group invariance under isomorphism of covers. -/
+def conjMulEquiv (e : E ≃ₜ F) (h : ∀ x, q (e x) = p x) : Deck p ≃* Deck q where
+  toFun := conj e h
+  invFun := conj e.symm (projection_symm_eq e h)
+  left_inv φ := by
+    ext x
+    simp [conj]
+  right_inv ψ := by
+    ext y
+    simp [conj]
+  map_mul' := conj_mul e h
+
+/-- The deck-group equivalence induced by a homeomorphism over the base acts by
+conjugation. -/
+@[simp]
+lemma conjMulEquiv_apply (e : E ≃ₜ F) (h : ∀ x, q (e x) = p x) (φ : Deck p) :
+    conjMulEquiv e h φ = conj e h φ :=
+  rfl
+
+/-- Pointwise form of `Deck.conjMulEquiv_apply`. -/
+@[simp]
+lemma conjMulEquiv_apply_coe (e : E ≃ₜ F) (h : ∀ x, q (e x) = p x) (φ : Deck p) (y : F) :
+    ((conjMulEquiv e h φ : Deck q).1 y) = e (φ.1 (e.symm y)) :=
+  rfl
+
+/-- The inverse of the deck-group equivalence induced by a homeomorphism over the base is
+conjugation by the inverse homeomorphism. -/
+@[simp]
+lemma conjMulEquiv_symm_apply (e : E ≃ₜ F) (h : ∀ x, q (e x) = p x) (ψ : Deck q) :
+    (conjMulEquiv e h).symm ψ = conj e.symm (projection_symm_eq e h) ψ :=
+  rfl
+
+/-- Pointwise form of `Deck.conjMulEquiv_symm_apply`. -/
+@[simp]
+lemma conjMulEquiv_symm_apply_coe
+    (e : E ≃ₜ F) (h : ∀ x, q (e x) = p x) (ψ : Deck q) (x : E) :
+    (((conjMulEquiv e h).symm ψ : Deck p).1 x) = e.symm (ψ.1 (e x)) :=
+  rfl
 
 end Deck
 
