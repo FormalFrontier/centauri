@@ -30,7 +30,7 @@ variable [HopfAlgebra k A] [HopfAlgebra k B]
 
 /-- A bialgebra homomorphism between Hopf algebras commutes with the antipode, as an equality of
 linear maps. -/
-lemma antipode_comp (f : A →ₐc[k] B) :
+private lemma antipode_comp (f : A →ₐc[k] B) :
     (HopfAlgebra.antipode k : B →ₗ[k] B).comp (f : A →ₗ[k] B) =
       (f : A →ₗ[k] B).comp (HopfAlgebra.antipode k : A →ₗ[k] A) := by
   -- The Hopf-algebra inverse uniqueness theorem is stated for linear maps. Naming the
@@ -56,7 +56,7 @@ lemma antipode_comp (f : A →ₐc[k] B) :
 
 /-- A bialgebra homomorphism between Hopf algebras preserves the antipode. -/
 @[simp]
-lemma map_antipode (f : A →ₐc[k] B) (a : A) :
+private lemma map_antipode (f : A →ₐc[k] B) (a : A) :
     f (HopfAlgebraStruct.antipode k a) = HopfAlgebraStruct.antipode k (f a) := by
   exact LinearMap.congr_fun (antipode_comp f).symm a
 
@@ -70,7 +70,7 @@ variable [Algebra R S] [HopfAlgebra R A] [HopfAlgebra S B] [Algebra R B] [IsScal
 /-- The antipode on a tensor product of Hopf algebras applies the antipode in each factor on
 pure tensors. -/
 @[simp]
-lemma antipode_tmul (b : B) (a : A) :
+private lemma antipode_tmul (b : B) (a : A) :
     HopfAlgebraStruct.antipode S (b ⊗ₜ[R] a : B ⊗[R] A) =
       HopfAlgebraStruct.antipode S b ⊗ₜ[R] HopfAlgebraStruct.antipode R a := by
   simp [_root_.TensorProduct.antipode_def]
@@ -84,7 +84,7 @@ variable [Bialgebra S A] [Bialgebra R B] [Algebra R A] [Algebra R S] [IsScalarTo
 
 /-- The tensor product of identity bialgebra homomorphisms is the identity. -/
 @[simp]
-lemma map_id :
+private lemma map_id :
     Bialgebra.TensorProduct.map (BialgHom.id S A) (BialgHom.id R B) =
       BialgHom.id S (A ⊗[R] B) := by
   ext x
@@ -98,7 +98,7 @@ variable [Bialgebra S C] [Bialgebra R D] [Bialgebra S E] [Bialgebra R F]
 variable [Algebra R C] [Algebra R E] [IsScalarTower R S C] [IsScalarTower R S E]
 
 /-- Tensor product of bialgebra homomorphisms preserves composition. -/
-lemma map_comp (f₂ : C →ₐc[S] E) (f₁ : A →ₐc[S] C)
+private lemma map_comp (f₂ : C →ₐc[S] E) (f₁ : A →ₐc[S] C)
     (g₂ : D →ₐc[R] F) (g₁ : B →ₐc[R] D) :
     Bialgebra.TensorProduct.map (f₂.comp f₁) (g₂.comp g₁) =
       (Bialgebra.TensorProduct.map f₂ g₂).comp (Bialgebra.TensorProduct.map f₁ g₁) := by
@@ -128,10 +128,21 @@ namespace BaseChange
 variable {k K A : Type*} [CommSemiring k] [CommSemiring K] [Semiring A]
 variable [Algebra k K]
 
+/-- The canonical inclusion of a Hopf algebra into its scalar extension. -/
+def includeRight [Algebra k A] :
+    A →ₐ[k] HopfAlgebra.baseChange k K A :=
+  Algebra.TensorProduct.includeRight (R := k) (A := K) (B := A)
+
+@[simp]
+lemma includeRight_apply [Algebra k A] (a : A) :
+    includeRight (K := K) a =
+      Algebra.TensorProduct.includeRight (R := k) (A := K) (B := A) a :=
+  rfl
+
 /-- The canonical inclusion sends scalars from `k` through the scalar extension. -/
 @[simp]
 lemma includeRight_algebraMap [Algebra k A] (r : k) :
-    Algebra.TensorProduct.includeRight (R := k) (A := K) (B := A) (algebraMap k A r) =
+    includeRight (K := K) (A := A) (algebraMap k A r) =
       algebraMap K (HopfAlgebra.baseChange k K A) (algebraMap k K r) := by
   simp [Algebra.TensorProduct.algebraMap_apply]
 
@@ -143,8 +154,7 @@ variable [Algebra k A] [CoalgebraStruct k A]
 @[simp]
 lemma counit_includeRight (a : A) :
     Coalgebra.counit (R := K)
-        (Algebra.TensorProduct.includeRight (R := k) (A := K) (B := A) a :
-          HopfAlgebra.baseChange k K A) =
+        (includeRight (K := K) a : HopfAlgebra.baseChange k K A) =
       algebraMap k K (Coalgebra.counit (R := k) a) := by
   simp [Algebra.smul_def]
 
@@ -153,11 +163,16 @@ comultiplication of the original coalgebra. -/
 @[simp]
 lemma comul_includeRight (a : A) :
     Coalgebra.comul (R := K)
-        (Algebra.TensorProduct.includeRight (R := k) (A := K) (B := A) a :
-          HopfAlgebra.baseChange k K A) =
+        (includeRight (K := K) a : HopfAlgebra.baseChange k K A) =
       ∑ i ∈ (ℛ k a).index,
-        Algebra.TensorProduct.includeRight (R := k) (A := K) (B := A) ((ℛ k a).left i) ⊗ₜ[K]
-          Algebra.TensorProduct.includeRight (R := k) (A := K) (B := A) ((ℛ k a).right i) := by
+        includeRight (K := K) ((ℛ k a).left i) ⊗ₜ[K]
+          includeRight (K := K) ((ℛ k a).right i) := by
+  change Coalgebra.comul (R := K)
+      (Algebra.TensorProduct.includeRight (R := k) (A := K) (B := A) a :
+        HopfAlgebra.baseChange k K A) =
+    ∑ i ∈ (ℛ k a).index,
+      Algebra.TensorProduct.includeRight (R := k) (A := K) (B := A) ((ℛ k a).left i) ⊗ₜ[K]
+        Algebra.TensorProduct.includeRight (R := k) (A := K) (B := A) ((ℛ k a).right i)
   rw [Algebra.TensorProduct.includeRight_apply, TensorProduct.comul_tmul]
   simp [← (ℛ k a).eq,
     TensorProduct.AlgebraTensorModule.tensorTensorTensorComm_tmul, TensorProduct.tmul_sum]
@@ -179,10 +194,8 @@ lemma antipode_tmul (r : K) (a : A) :
 @[simp]
 lemma antipode_includeRight (a : A) :
     HopfAlgebraStruct.antipode K
-        (Algebra.TensorProduct.includeRight (R := k) (A := K) (B := A) a :
-          HopfAlgebra.baseChange k K A) =
-      Algebra.TensorProduct.includeRight (R := k) (A := K) (B := A)
-        (HopfAlgebraStruct.antipode k a) := by
+        (includeRight (K := K) a : HopfAlgebra.baseChange k K A) =
+      includeRight (K := K) (HopfAlgebraStruct.antipode k a) := by
   simp
 
 end HopfOperations
@@ -207,8 +220,8 @@ lemma map_tmul (f : A →ₐc[k] B) (r : K) (a : A) :
 /-- Scalar extension sends the canonical inclusion of `a` to the canonical inclusion of `f a`. -/
 @[simp]
 lemma map_includeRight (f : A →ₐc[k] B) (a : A) :
-    map (K := K) f (Algebra.TensorProduct.includeRight (R := k) (A := K) (B := A) a) =
-      Algebra.TensorProduct.includeRight (R := k) (A := K) (B := B) (f a) := by
+    map (K := K) f (includeRight (K := K) a) =
+      includeRight (K := K) (f a) := by
   simp
 
 /-- Scalar extension sends the identity bialgebra homomorphism to the identity. -/
