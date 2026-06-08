@@ -271,8 +271,8 @@ bialgebra-valued convolution monoid functor. -/
 lemma convGroupFunctor_comp_forget₂ :
     (convGroupFunctor R H : CommAlgCat.{w} R ⥤ GrpCat.{max v w}) ⋙ forget₂ GrpCat MonCat =
       (convMonoidFunctor R H : CommAlgCat.{w} R ⥤ MonCat.{max v w}) := by
-  -- After forgetting from groups to monoids, the object and map fields are exactly the
-  -- bialgebra functor fields: both maps are `mapValue φ.hom`.
+  refine CategoryTheory.Functor.ext (fun A => rfl) (fun A B φ => ?_)
+  change MonCat.ofHom (mapValue φ.hom) = MonCat.ofHom (mapValue φ.hom)
   rfl
 
 end HopfFunctor
