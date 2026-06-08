@@ -18,6 +18,13 @@ tautological action of the ambient homeomorphism group `E ≃ₜ E` on `E`
 (`TauCeti.Homeomorph.applyMulAction`). Each deck transformation preserves `p`, hence
 preserves every fibre of `p`.
 
+## Main definitions
+
+* `TauCeti.Deck.fiberHomeomorph`: a deck transformation restricts to a homeomorphism of
+  every fibre of the projection.
+* `TauCeti.Deck.fiberMulHom`: restriction to a fixed fibre, as a monoid homomorphism from
+  deck transformations to fibre homeomorphisms.
+
 ## References
 
 This file follows the deck-transformation target in the Tau Ceti universal-covers roadmap,
@@ -50,9 +57,26 @@ variable {p}
 lemma mem_iff (φ : E ≃ₜ E) : φ ∈ Deck p ↔ ∀ e, p (φ e) = p e :=
   Iff.rfl
 
+/-- Two deck transformations are equal when their underlying maps agree pointwise. -/
+@[ext]
+lemma ext {φ ψ : Deck p} (h : ∀ e, φ.1 e = ψ.1 e) : φ = ψ :=
+  Subtype.ext <| Homeomorph.ext h
+
 /-- A deck transformation preserves the projection map pointwise. -/
 lemma map_proj (φ : Deck p) (e : E) : p (φ.1 e) = p e :=
   φ.2 e
+
+/-- On points, the action of a deck transformation is evaluation of its underlying
+homeomorphism. The action itself is inherited, by subgroup transfer, from the tautological
+action of `E ≃ₜ E` on `E`. -/
+@[simp]
+lemma smul_eq_apply (φ : Deck p) (e : E) : φ • e = φ.1 e :=
+  rfl
+
+/-- The scalar action of a deck transformation preserves the projection map pointwise. -/
+lemma map_proj_smul (φ : Deck p) (e : E) : p (φ • e) = p e := by
+  rw [smul_eq_apply]
+  exact map_proj φ e
 
 /-- A deck transformation preserves each fibre of the projection. -/
 lemma mapsTo_fiber (φ : Deck p) (b : B) : Set.MapsTo φ.1 (p ⁻¹' {b}) (p ⁻¹' {b}) := by
@@ -72,6 +96,16 @@ the restriction of its underlying homeomorphism along `Homeomorph.subtype`. -/
 def fiberHomeomorph (φ : Deck p) (b : B) : p ⁻¹' {b} ≃ₜ p ⁻¹' {b} :=
   φ.1.subtype fun e => by simp [Set.mem_preimage, eq_comm, map_proj]
 
+/-- A deck transformation sends a point in a fibre to a point in the same fibre. -/
+def smulFiber (φ : Deck p) {b : B} (e : p ⁻¹' {b}) : p ⁻¹' {b} :=
+  fiberHomeomorph φ b e
+
+/-- The fibre action is induced by the ambient deck action on points. -/
+@[simp]
+lemma smulFiber_coe (φ : Deck p) {b : B} (e : p ⁻¹' {b}) :
+    (smulFiber φ e : E) = φ • e.1 :=
+  rfl
+
 /-- On points, the fibre homeomorphism induced by a deck transformation is just evaluation
 of that transformation. -/
 @[simp]
@@ -86,11 +120,42 @@ lemma fiberHomeomorph_symm_apply (φ : Deck p) (b : B) (e : p ⁻¹' {b}) :
     ((fiberHomeomorph φ b).symm e : E) = φ.1.symm e.1 :=
   rfl
 
-/-- On points, the action of a deck transformation is evaluation of its underlying
-homeomorphism. The action itself is inherited, by subgroup transfer, from the tautological
-action of `E ≃ₜ E` on `E`. -/
+/-- The identity deck transformation restricts to the identity on each fibre. -/
 @[simp]
-lemma smul_eq_apply (φ : Deck p) (e : E) : φ • e = φ.1 e :=
+lemma fiberHomeomorph_one (b : B) : fiberHomeomorph (1 : Deck p) b = 1 := by
+  ext e
+  rfl
+
+/-- Restriction of deck transformations to a fibre preserves composition. -/
+@[simp]
+lemma fiberHomeomorph_mul (φ ψ : Deck p) (b : B) :
+    fiberHomeomorph (φ * ψ) b = fiberHomeomorph φ b * fiberHomeomorph ψ b := by
+  ext e
+  rfl
+
+/-- Restriction of deck transformations to a fibre preserves inverses. -/
+@[simp]
+lemma fiberHomeomorph_inv (φ : Deck p) (b : B) :
+    fiberHomeomorph φ⁻¹ b = (fiberHomeomorph φ b)⁻¹ := by
+  ext e
+  rfl
+
+/-- Restricting deck transformations to a fixed fibre, as a monoid homomorphism. -/
+def fiberMulHom (p : E → B) (b : B) : Deck p →* p ⁻¹' {b} ≃ₜ p ⁻¹' {b} where
+  toFun φ := fiberHomeomorph φ b
+  map_one' := fiberHomeomorph_one b
+  map_mul' φ ψ := fiberHomeomorph_mul φ ψ b
+
+/-- The monoid homomorphism to a fibre homeomorphism evaluates as the restricted deck
+transformation. -/
+@[simp]
+lemma fiberMulHom_apply (b : B) (φ : Deck p) (e : p ⁻¹' {b}) :
+    (fiberMulHom p b φ e : E) = φ.1 e.1 :=
+  rfl
+
+/-- The monoid homomorphism to a fibre homeomorphism is definitionally the fibre restriction. -/
+@[simp]
+lemma fiberMulHom_coe (b : B) (φ : Deck p) : fiberMulHom p b φ = fiberHomeomorph φ b :=
   rfl
 
 -- `FaithfulSMul (Deck p) E` and `ContinuousConstSMul (Deck p) E` are inherited from the generic
