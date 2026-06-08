@@ -89,26 +89,6 @@ lemma pointsFunctor_map_apply_apply {A B : CommAlgCat.{w} R} (φ : A ⟶ B)
       φ.hom (f.ofConv h) :=
   rfl
 
-/-- The points functor sends identity morphisms to identity maps. -/
-@[simp]
-lemma pointsFunctor_map_id (A : CommAlgCat.{w} R) :
-    (pointsFunctor (R := R) H).map (𝟙 A) =
-      𝟙 ((pointsFunctor (R := R) H).obj A) :=
-  (pointsFunctor (R := R) H).map_id A
-
-/-- The points functor sends composition of value-algebra maps to composition of group maps. -/
-@[simp]
-lemma pointsFunctor_map_comp {A B C : CommAlgCat.{w} R} (φ : A ⟶ B) (ψ : B ⟶ C) :
-    (pointsFunctor (R := R) H).map (φ ≫ ψ) =
-      (pointsFunctor (R := R) H).map φ ≫ (pointsFunctor (R := R) H).map ψ :=
-  (pointsFunctor (R := R) H).map_comp φ ψ
-
-/-- Multiplication in `points H A` is the convolution product. -/
-lemma points_mul_apply (A : CommAlgCat.{w} R) (f g : points (R := R) H A) (h : H) :
-    (f * g) h =
-      Algebra.TensorProduct.lift f.ofConv g.ofConv (fun _ _ => .all ..) (Coalgebra.comul h) :=
-  AlgHom.convMul_apply f g h
-
 /-- The map on points preserves convolution products. -/
 @[simp]
 lemma pointsFunctor_map_mul {A B : CommAlgCat.{w} R} (φ : A ⟶ B)
