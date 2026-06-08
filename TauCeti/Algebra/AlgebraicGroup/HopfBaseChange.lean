@@ -127,8 +127,8 @@ theorem baseChangeValueEquiv_symm_apply (f : HopfAlgebra.BaseChange R S A →ₐ
     (baseChangeValueEquiv (R := R) (S := S)).symm f a =
       f (HopfAlgebra.BaseChange.inclusion (S := S) a) :=
   by
-    change ((AlgHom.liftEquiv R S A B).symm f) a = f (1 ⊗ₜ[R] a)
-    exact _root_.AlgHom.liftEquiv_symm_apply f a
+    simp [baseChangeValueEquiv, HopfAlgebra.BaseChange.inclusion,
+      _root_.AlgHom.liftEquiv_symm_apply]
 
 variable [Semiring C] [Algebra S C] [Algebra R C] [IsScalarTower R S C]
 
