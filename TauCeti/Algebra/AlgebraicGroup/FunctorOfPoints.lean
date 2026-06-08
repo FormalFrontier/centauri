@@ -79,7 +79,7 @@ end HopfAlgebra
 
 namespace AlgHom
 
-universe u
+universe u v w
 
 variable {R H A : Type*} [CommSemiring R]
 
@@ -194,13 +194,13 @@ end Bialgebra
 
 section BialgebraFunctor
 
-variable {R H : Type u} [CommRing R] [Semiring H] [_root_.Bialgebra R H]
+variable {R : Type u} {H : Type v} [CommRing R] [Semiring H] [_root_.Bialgebra R H]
 
 /-- The functor of points of a bialgebra, valued in monoids: a commutative `R`-algebra `A`
 is sent to the convolution monoid of `R`-algebra homomorphisms `H →ₐ[R] A`, and a morphism
 `φ : A ⟶ B` is sent to post-composition with `φ`. -/
-noncomputable def convMonoidFunctor (R H : Type u) [CommRing R] [Semiring H]
-    [_root_.Bialgebra R H] : CommAlgCat.{u} R ⥤ MonCat.{u} where
+noncomputable def convMonoidFunctor (R : Type u) (H : Type v) [CommRing R] [Semiring H]
+    [_root_.Bialgebra R H] : CommAlgCat.{w} R ⥤ MonCat.{max v w} where
   obj A := MonCat.of (WithConv (H →ₐ[R] A))
   map {A B} φ := MonCat.ofHom (mapValue φ.hom)
   map_id A := by
@@ -212,18 +212,18 @@ noncomputable def convMonoidFunctor (R H : Type u) [CommRing R] [Semiring H]
 
 /-- On objects, `convMonoidFunctor` is the convolution monoid of algebra homomorphisms. -/
 @[simp]
-lemma convMonoidFunctor_obj (A : CommAlgCat.{u} R) :
+lemma convMonoidFunctor_obj (A : CommAlgCat.{w} R) :
     (convMonoidFunctor R H).obj A = MonCat.of (WithConv (H →ₐ[R] A)) := rfl
 
 /-- On morphisms, `convMonoidFunctor` is post-composition in the value algebra. -/
 @[simp]
-lemma convMonoidFunctor_map {A B : CommAlgCat.{u} R} (φ : A ⟶ B) :
+lemma convMonoidFunctor_map {A B : CommAlgCat.{w} R} (φ : A ⟶ B) :
     (convMonoidFunctor R H).map φ = MonCat.ofHom (mapValue φ.hom) := rfl
 
 /-- Pointwise, `convMonoidFunctor` maps a point by post-composition with the target
 algebra morphism. -/
 @[simp]
-lemma convMonoidFunctor_map_apply {A B : CommAlgCat.{u} R} (φ : A ⟶ B)
+lemma convMonoidFunctor_map_apply {A B : CommAlgCat.{w} R} (φ : A ⟶ B)
     (f : WithConv (H →ₐ[R] A)) :
     (convMonoidFunctor R H).map φ f = toConv (φ.hom.comp f.ofConv) := rfl
 
@@ -231,14 +231,14 @@ end BialgebraFunctor
 
 section HopfFunctor
 
-variable {R H : Type u} [CommRing R] [Semiring H] [_root_.HopfAlgebra R H]
+variable {R : Type u} {H : Type v} [CommRing R] [Semiring H] [_root_.HopfAlgebra R H]
 
 /-- The functor of points of a Hopf algebra, valued in groups: a commutative `R`-algebra `A`
 is sent to the convolution group of `R`-algebra homomorphisms `H →ₐ[R] A`, and a morphism
 `φ : A ⟶ B` is sent to post-composition with `φ`. For a commutative Hopf algebra `H`, this
 is the usual functor of points of the affine group scheme `Spec H`. -/
-noncomputable def convGroupFunctor (R H : Type u) [CommRing R] [Semiring H]
-    [_root_.HopfAlgebra R H] : CommAlgCat.{u} R ⥤ GrpCat.{u} where
+noncomputable def convGroupFunctor (R : Type u) (H : Type v) [CommRing R] [Semiring H]
+    [_root_.HopfAlgebra R H] : CommAlgCat.{w} R ⥤ GrpCat.{max v w} where
   obj A := GrpCat.of (WithConv (H →ₐ[R] A))
   map {A B} φ := GrpCat.ofHom (mapValue φ.hom)
   map_id A := by
@@ -250,18 +250,18 @@ noncomputable def convGroupFunctor (R H : Type u) [CommRing R] [Semiring H]
 
 /-- On objects, `convGroupFunctor` is the convolution group of algebra homomorphisms. -/
 @[simp]
-lemma convGroupFunctor_obj (A : CommAlgCat.{u} R) :
+lemma convGroupFunctor_obj (A : CommAlgCat.{w} R) :
     (convGroupFunctor R H).obj A = GrpCat.of (WithConv (H →ₐ[R] A)) := rfl
 
 /-- On morphisms, `convGroupFunctor` is post-composition in the value algebra. -/
 @[simp]
-lemma convGroupFunctor_map {A B : CommAlgCat.{u} R} (φ : A ⟶ B) :
+lemma convGroupFunctor_map {A B : CommAlgCat.{w} R} (φ : A ⟶ B) :
     (convGroupFunctor R H).map φ = GrpCat.ofHom (mapValue φ.hom) := rfl
 
 /-- Pointwise, `convGroupFunctor` maps a point by post-composition with the target algebra
 morphism. -/
 @[simp]
-lemma convGroupFunctor_map_apply {A B : CommAlgCat.{u} R} (φ : A ⟶ B)
+lemma convGroupFunctor_map_apply {A B : CommAlgCat.{w} R} (φ : A ⟶ B)
     (f : WithConv (H →ₐ[R] A)) :
     (convGroupFunctor R H).map φ f = toConv (φ.hom.comp f.ofConv) := rfl
 
@@ -269,7 +269,11 @@ lemma convGroupFunctor_map_apply {A B : CommAlgCat.{u} R} (φ : A ⟶ B)
 bialgebra-valued convolution monoid functor. -/
 @[simp]
 lemma convGroupFunctor_comp_forget₂ :
-    convGroupFunctor R H ⋙ forget₂ GrpCat MonCat = convMonoidFunctor R H := rfl
+    (convGroupFunctor R H : CommAlgCat.{w} R ⥤ GrpCat.{max v w}) ⋙ forget₂ GrpCat MonCat =
+      (convMonoidFunctor R H : CommAlgCat.{w} R ⥤ MonCat.{max v w}) := by
+  -- After forgetting from groups to monoids, the object and map fields are exactly the
+  -- bialgebra functor fields: both maps are `mapValue φ.hom`.
+  rfl
 
 end HopfFunctor
 
