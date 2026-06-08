@@ -129,6 +129,36 @@ lemma orbitRelQuotientProj_mk (e : E) :
     orbitRelQuotientProj (p := p) (Quotient.mk'' e) = p e :=
   rfl
 
+/-- If `p` is surjective, then so is the projection descended to deck-orbit classes. -/
+lemma orbitRelQuotientProj_surjective (hp : Function.Surjective p) :
+    Function.Surjective (orbitRelQuotientProj (p := p)) := by
+  rintro b
+  rcases hp b with ⟨e, rfl⟩
+  exact ⟨Quotient.mk'' e, rfl⟩
+
+/-- If every fibre is contained in a deck orbit, then the projection descended to deck-orbit
+classes is injective. Together with `Deck.orbit_subset_fiber`, this says precisely that
+fibres are the deck orbits. -/
+lemma orbitRelQuotientProj_injective_of_fiber_subset_orbit
+    (h : ∀ {e₁ e₂ : E}, p e₁ = p e₂ → MulAction.orbitRel (Deck p) E e₁ e₂) :
+    Function.Injective (orbitRelQuotientProj (p := p)) := by
+  intro q₁ q₂ hq
+  induction q₁ using Quotient.inductionOn' with
+  | h e₁ =>
+    induction q₂ using Quotient.inductionOn' with
+    | h e₂ =>
+      exact Quotient.sound' (h hq)
+
+/-- When `p` is surjective and every fibre is a deck orbit, the projection descended to
+deck-orbit classes is an equivalence. -/
+noncomputable def orbitRelQuotientProjEquivOfFiberOrbit
+    (hp : Function.Surjective p)
+    (h : ∀ {e₁ e₂ : E}, p e₁ = p e₂ → MulAction.orbitRel (Deck p) E e₁ e₂) :
+    Quotient (MulAction.orbitRel (Deck p) E) ≃ B :=
+  Equiv.ofBijective (orbitRelQuotientProj (p := p))
+    ⟨orbitRelQuotientProj_injective_of_fiber_subset_orbit (p := p) h,
+      orbitRelQuotientProj_surjective (p := p) hp⟩
+
 -- `FaithfulSMul (Deck p) E` and `ContinuousConstSMul (Deck p) E` are inherited from the generic
 -- subgroup instances in `TauCeti.Topology.Algebra.HomeomorphAction`; `Deck p` is a `Subgroup`.
 
