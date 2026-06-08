@@ -17,84 +17,80 @@ type is finite when `ι` is finite.
 
 namespace TauCeti
 
-/-- A multiindex on `ι`, represented as a finitely supported function `ι →₀ ℕ`. -/
-abbrev MultiIndex (ι : Type*) : Type _ :=
-  ι →₀ ℕ
+/-- A multiindex on `ι`.
+
+This wraps the `Finsupp` representation so the Sobolev API can stay focused on
+finite-support derivative orders instead of exposing arbitrary `Finsupp` operations. -/
+structure MultiIndex (ι : Type*) : Type _ where
+  /-- The underlying finitely supported function. -/
+  toFinsupp : ι →₀ ℕ
+deriving DecidableEq
 
 namespace MultiIndex
 
+noncomputable section
+
 variable {ι : Type*}
 
+instance : CoeFun (MultiIndex ι) fun _ => ι → ℕ :=
+  ⟨fun α => α.toFinsupp⟩
+
+@[ext]
+lemma ext {α β : MultiIndex ι} (h : ∀ i, α i = β i) : α = β := by
+  cases α
+  cases β
+  congr
+  exact Finsupp.ext h
+
+instance : Zero (MultiIndex ι) :=
+  ⟨⟨0⟩⟩
+
+noncomputable instance : Add (MultiIndex ι) :=
+  ⟨fun α β => ⟨α.toFinsupp + β.toFinsupp⟩⟩
+
+instance : LE (MultiIndex ι) :=
+  ⟨fun α β => α.toFinsupp ≤ β.toFinsupp⟩
+
+@[simp]
+lemma toFinsupp_zero : (0 : MultiIndex ι).toFinsupp = 0 :=
+  rfl
+
+@[simp]
+lemma toFinsupp_add (α β : MultiIndex ι) :
+    (α + β).toFinsupp = α.toFinsupp + β.toFinsupp :=
+  rfl
+
+@[simp]
+lemma zero_apply (i : ι) : (0 : MultiIndex ι) i = 0 :=
+  rfl
+
+@[simp]
+lemma add_apply (α β : MultiIndex ι) (i : ι) : (α + β) i = α i + β i :=
+  rfl
+
 /-- The total order, or degree, of a multiindex. -/
-noncomputable abbrev order (α : MultiIndex ι) : ℕ :=
-  Finsupp.degree α
+def order (α : MultiIndex ι) : ℕ :=
+  Finsupp.degree α.toFinsupp
 
 /-- The multiindex with one derivative in coordinate `i` and none elsewhere. -/
 noncomputable def unit (i : ι) : MultiIndex ι :=
-  Finsupp.single i 1
+  ⟨Finsupp.single i 1⟩
+
+@[simp]
+lemma toFinsupp_unit (i : ι) : (unit i).toFinsupp = Finsupp.single i 1 :=
+  rfl
+
+@[simp]
+lemma order_unit (i : ι) : order (unit i : MultiIndex ι) = 1 := by
+  simp [order, unit]
 
 @[simp]
 lemma order_zero : order (0 : MultiIndex ι) = 0 := by
   simp [order]
 
 @[simp]
-lemma order_single (i : ι) (n : ℕ) : order (Finsupp.single i n : MultiIndex ι) = n := by
+lemma order_add (α β : MultiIndex ι) : order (α + β) = order α + order β := by
   simp [order]
-
-@[simp]
-lemma order_unit (i : ι) : order (unit i : MultiIndex ι) = 1 := by
-  simp [unit]
-
-@[simp]
-lemma order_add (α β : MultiIndex ι) :
-    order (α + β) = order α + order β := by
-  simp [order]
-
-lemma order_le_order_add_left (α β : MultiIndex ι) : order α ≤ order (α + β) := by
-  rw [order_add]
-  exact Nat.le_add_right _ _
-
-lemma order_le_order_add_right (α β : MultiIndex ι) : order β ≤ order (α + β) := by
-  rw [order_add]
-  exact Nat.le_add_left _ _
-
-lemma order_mono {α β : MultiIndex ι} (h : α ≤ β) :
-    order α ≤ order β := by
-  exact Finsupp.degree_mono h
-
-lemma order_eq_sum [Fintype ι] (α : MultiIndex ι) : order α = ∑ i, α i := by
-  exact Finsupp.degree_eq_sum α
-
-lemma apply_le_order (α : MultiIndex ι) (i : ι) : α i ≤ order α := by
-  exact Finsupp.le_degree i α
-
-lemma eq_zero_of_order_eq_zero {α : MultiIndex ι} (h : order α = 0) : α = 0 := by
-  exact (Finsupp.degree_eq_zero_iff α).mp h
-
-@[simp]
-lemma order_eq_zero_iff {α : MultiIndex ι} : order α = 0 ↔ α = 0 :=
-  Finsupp.degree_eq_zero_iff α
-
-@[simp]
-lemma zero_lt_order_iff {α : MultiIndex ι} : 0 < order α ↔ α ≠ 0 := by
-  constructor
-  · intro h hα
-    simp [hα] at h
-  · intro h
-    exact Nat.pos_of_ne_zero fun horder => h (order_eq_zero_iff.mp horder)
-
-lemma order_pos_of_ne_zero {α : MultiIndex ι} (hα : α ≠ 0) : 0 < order α :=
-  zero_lt_order_iff.mpr hα
-
-lemma order_eq_one_iff {α : MultiIndex ι} : order α = 1 ↔ ∃ i, α = unit i := by
-  constructor
-  · intro h
-    have hmem : α ∈ {d : ι →₀ ℕ | Finsupp.degree d = 1} := h
-    rw [← Finsupp.range_single_one] at hmem
-    rcases hmem with ⟨i, hi⟩
-    exact ⟨i, by simpa [unit] using hi.symm⟩
-  · rintro ⟨i, rfl⟩
-    simp [unit, order]
 
 @[simp]
 lemma unit_apply_self (i : ι) : unit i i = 1 := by
@@ -125,15 +121,16 @@ section DegreeLE
 
 variable {k : ℕ}
 
-noncomputable instance degreeLEFintype [Finite ι] : Fintype (DegreeLE ι k) := by
-  classical
-  exact Set.Finite.fintype (by
-    change ({f : ι →₀ ℕ | Finsupp.degree f ≤ k} : Set (ι →₀ ℕ)).Finite
-    exact Finsupp.finite_of_degree_le (σ := ι) k)
-
 /-- There are only finitely many multiindices of order at most `k` on a finite index type. -/
 lemma finite_setOf_order_le [Finite ι] (k : ℕ) : {α : MultiIndex ι | order α ≤ k}.Finite := by
-  simpa [MultiIndex, order] using Finsupp.finite_of_degree_le (σ := ι) k
+  classical
+  change Set.Finite (toFinsupp ⁻¹' {f : ι →₀ ℕ | Finsupp.degree f ≤ k})
+  exact (Finsupp.finite_of_degree_le (σ := ι) k).preimage fun _ _ _ _ h =>
+    ext fun i => congrFun (congrArg DFunLike.coe h) i
+
+instance degreeLEFintype [Finite ι] : Fintype (DegreeLE ι k) := by
+  classical
+  exact Set.Finite.fintype (finite_setOf_order_le (ι := ι) k)
 
 @[simp]
 lemma mem_degreeLE_iff (α : MultiIndex ι) : α ∈ {α : MultiIndex ι | order α ≤ k} ↔
@@ -141,6 +138,8 @@ lemma mem_degreeLE_iff (α : MultiIndex ι) : α ∈ {α : MultiIndex ι | order
   Iff.rfl
 
 end DegreeLE
+
+end
 
 end MultiIndex
 
