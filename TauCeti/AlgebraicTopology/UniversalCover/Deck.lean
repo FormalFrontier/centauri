@@ -95,9 +95,15 @@ lemma coe_fiberSubMulAction (b : B) :
     (fiberSubMulAction (p := p) b : Set E) = p ⁻¹' {b} :=
   rfl
 
+/-- Acting by a deck transformation preserves membership in a named fibre. -/
+@[simp]
+lemma smul_mem_fiber_iff (φ : Deck p) {b : B} {e : E} :
+    p (φ • e) = b ↔ p e = b := by
+  simp only [smul_eq_apply, map_proj]
+
 /-- Acting by a deck transformation preserves a named fibre. -/
-lemma smul_mem_fiber (φ : Deck p) {b : B} {e : E} (he : p e = b) : p (φ • e) = b := by
-  simpa only [smul_eq_apply, he] using map_proj φ e
+lemma smul_mem_fiber (φ : Deck p) {b : B} {e : E} (he : p e = b) : p (φ • e) = b :=
+  (smul_mem_fiber_iff φ).2 he
 
 /-- The action of `Deck p` on a fibre is the action inherited from its invariant-subset
 structure. -/
@@ -106,7 +112,7 @@ instance fiberMulAction (b : B) : MulAction (Deck p) (p ⁻¹' {b}) :=
 
 /-- On a fibre, the inherited action is evaluation of the underlying homeomorphism. -/
 @[simp]
-lemma fiber_smul_coe (φ : Deck p) {b : B} (e : p ⁻¹' {b}) :
+lemma coe_fiber_smul (φ : Deck p) {b : B} (e : p ⁻¹' {b}) :
     (φ • e : E) = φ.1 e.1 := by
   rw [smul_eq_apply]
 
@@ -136,14 +142,14 @@ lemma fiberHomeomorph_toEquiv (φ : Deck p) (b : B) :
   ext e
   calc
     ↑((fiberHomeomorph φ b).toEquiv e) = φ.1 e.1 := rfl
-    _ = ↑((MulAction.toPerm φ) e) := (fiber_smul_coe φ e).symm
+    _ = ↑((MulAction.toPerm φ) e) := (coe_fiber_smul φ e).symm
 
 /-- The identity deck transformation restricts to the identity on each fibre. -/
 @[simp]
 lemma fiberHomeomorph_one (b : B) :
     fiberHomeomorph (p := p) (1 : Deck p) b = 1 := by
   ext e
-  rfl
+  simp [fiberHomeomorph_apply]
 
 /-- Restricting a product of deck transformations to a fibre is the product of the
 restrictions. -/
@@ -151,7 +157,7 @@ restrictions. -/
 lemma fiberHomeomorph_mul (φ ψ : Deck p) (b : B) :
     fiberHomeomorph (φ * ψ) b = fiberHomeomorph φ b * fiberHomeomorph ψ b := by
   ext e
-  rfl
+  simp [fiberHomeomorph_apply, Homeomorph.mul_apply]
 
 /-- Restriction of deck transformations to a fixed fibre, as a homomorphism into the
 homeomorphism group of that fibre. -/
@@ -172,7 +178,7 @@ multiplication by that deck transformation. -/
 @[simp]
 lemma fiberHomeomorph_apply_eq_smul (φ : Deck p) (b : B) (e : p ⁻¹' {b}) :
     fiberHomeomorph φ b e = φ • e :=
-  Subtype.ext (fiber_smul_coe φ e).symm
+  Subtype.ext (coe_fiber_smul φ e).symm
 
 /-- On each fibre, scalar multiplication by a deck transformation is continuous. -/
 instance fiberContinuousConstSMul (b : B) :
@@ -188,31 +194,14 @@ instance fiberContinuousConstSMul (b : B) :
 underlying points are in the same ambient `Deck p`-orbit. -/
 lemma mem_fiber_orbit_iff {b : B} {e e' : p ⁻¹' {b}} :
     e' ∈ MulAction.orbit (Deck p) e ↔
-      (e' : E) ∈ MulAction.orbit (Deck p) (e : E) := by
-  constructor
-  · rintro ⟨φ, rfl⟩
-    exact ⟨φ, rfl⟩
-  · rintro ⟨φ, hφ⟩
-    exact ⟨φ, Subtype.ext hφ⟩
+      (e' : E) ∈ MulAction.orbit (Deck p) (e : E) :=
+  SubMulAction.mem_orbit_subMul_iff (p := fiberSubMulAction (p := p) b)
 
 /-- Stabilizers for the induced action on a fibre agree with stabilizers of the underlying
 point for the ambient action on the total space. -/
 lemma fiber_stabilizer_eq {b : B} (e : p ⁻¹' {b}) :
-    MulAction.stabilizer (Deck p) e = MulAction.stabilizer (Deck p) (e : E) := by
-  ext φ
-  simp only [MulAction.mem_stabilizer_iff]
-  constructor
-  · intro hφ
-    calc
-      φ • (e : E) = (φ • e : E) :=
-        (smul_eq_apply φ (e : E)).trans (fiber_smul_coe φ e).symm
-      _ = e := congrArg Subtype.val hφ
-  · intro hφ
-    apply Subtype.ext
-    calc
-      (φ • e : E) = φ • (e : E) :=
-        (fiber_smul_coe φ e).trans (smul_eq_apply φ (e : E)).symm
-      _ = e := hφ
+    MulAction.stabilizer (Deck p) e = MulAction.stabilizer (Deck p) (e : E) :=
+  SubMulAction.stabilizer_of_subMul (p := fiberSubMulAction (p := p) b) e
 
 -- `FaithfulSMul (Deck p) E` and `ContinuousConstSMul (Deck p) E` are inherited from the generic
 -- subgroup instances in `TauCeti.Topology.Algebra.HomeomorphAction`; `Deck p` is a `Subgroup`.
