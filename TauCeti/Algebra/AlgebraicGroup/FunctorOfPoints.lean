@@ -233,13 +233,38 @@ abbrev hom (f : AlgPoints R H A) : H →ₐ[R] A :=
 /-- Building a point from an algebra homomorphism and taking its underlying homomorphism
 recovers the original algebra homomorphism. -/
 @[simp]
-lemma ofHom_hom (f : H →ₐ[R] A) : (ofHom f : AlgPoints R H A).hom = f :=
+lemma hom_ofHom (f : H →ₐ[R] A) : (ofHom f : AlgPoints R H A).hom = f :=
   rfl
 
 /-- A point is recovered from its underlying algebra homomorphism. -/
 @[simp]
-lemma ofHom_hom_self (f : AlgPoints R H A) : ofHom f.hom = f :=
+lemma ofHom_hom (f : AlgPoints R H A) : ofHom f.hom = f :=
   rfl
+
+/-- The identity point is the counit followed by the structure map of the value algebra. -/
+@[simp]
+lemma one_hom_apply (h : H) :
+    (1 : AlgPoints R H A).hom h = algebraMap R A (counit h) :=
+  AlgHom.convOne_apply h
+
+/-- Pointwise, multiplication of points is convolution along the comultiplication. -/
+lemma mul_hom_apply (f g : AlgPoints R H A) (h : H) :
+    (f * g).hom h =
+      Algebra.TensorProduct.lift f.hom g.hom (fun _ _ => .all ..) (comul h) :=
+  AlgHom.convMul_apply f g h
+
+end AlgPoints
+
+namespace AlgPoints
+
+variable {R : Type u} {H : Type v} [CommSemiring R] [Semiring H] [_root_.HopfAlgebra R H]
+variable {A : Type w} [CommSemiring A] [Algebra R A]
+
+/-- Pointwise, the inverse of a point is precomposition with the antipode. -/
+@[simp]
+lemma inv_hom_apply (f : AlgPoints R H A) (h : H) :
+    (f⁻¹).hom h = f.hom (antipode R h) :=
+  AlgHom.convInv_apply f h
 
 end AlgPoints
 
