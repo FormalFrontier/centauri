@@ -30,24 +30,26 @@ namespace TauCeti
 
 namespace HopfAlgebra
 
-universe u
+universe u v w x y
 
-variable (R H : Type u) [CommRing R] [Ring H] [_root_.HopfAlgebra R H]
+variable (R : Type u) (H : Type v) [CommSemiring R] [Semiring H] [_root_.Bialgebra R H]
 
-/-- The `A`-points of the affine group represented by a Hopf algebra `H` over `R`.
+/-- The `A`-points represented by a bialgebra `H` over `R`.
 
-This is the type of `R`-algebra homomorphisms `H →ₐ[R] A`, equipped with the convolution group
-structure. The source algebra `H` is allowed to be noncommutative here; for the usual affine
-group-scheme interpretation one later adds commutativity of `H` so that `Spec H` exists as an
-affine scheme over `R`. -/
-abbrev AlgPoints (A : Type u) [CommRing A] [Algebra R A] : Type u :=
+This is the type of `R`-algebra homomorphisms `H →ₐ[R] A`, equipped with the convolution
+monoid structure. When `H` is a Hopf algebra this monoid is the convolution group used by
+`pointsFunctor`. The source algebra `H` is allowed to be noncommutative here; for the usual
+affine group-scheme interpretation one later adds commutativity of `H` so that `Spec H` exists
+as an affine scheme over `R`. -/
+abbrev AlgPoints (R : Type u) (H : Type v) [CommSemiring R] [Semiring H]
+    [_root_.Bialgebra R H] (A : Type w) [CommSemiring A] [Algebra R A] : Type (max v w) :=
   WithConv (H →ₐ[R] A)
 
 namespace AlgPoints
 
-variable {R H : Type u} [CommRing R] [Ring H] [_root_.HopfAlgebra R H]
-variable {A B C : Type u} [CommRing A] [Algebra R A] [CommRing B] [Algebra R B]
-  [CommRing C] [Algebra R C]
+variable {R : Type u} {H : Type v} [CommSemiring R] [Semiring H] [_root_.Bialgebra R H]
+variable {A : Type w} {B : Type x} {C : Type y} [CommSemiring A] [Algebra R A]
+  [CommSemiring B] [Algebra R B] [CommSemiring C] [Algebra R C]
 
 /-- The underlying algebra homomorphism of a point of a Hopf algebra. -/
 abbrev hom (f : AlgPoints R H A) : H →ₐ[R] A :=
@@ -85,7 +87,8 @@ end AlgPoints
 
 It sends a commutative `R`-algebra `A` to the convolution group of algebra maps
 `H →ₐ[R] A`, and sends `φ : A ⟶ B` to post-composition with `φ`. -/
-noncomputable def pointsFunctor : CommAlgCat.{u} R ⥤ GrpCat.{u} where
+noncomputable def pointsFunctor (R : Type u) (H : Type v) [CommRing R] [Semiring H]
+    [_root_.HopfAlgebra R H] : CommAlgCat.{w} R ⥤ GrpCat.{max v w} where
   obj A := GrpCat.of (AlgPoints R H A)
   map {A B} φ := GrpCat.ofHom (AlgPoints.map (H := H) φ.hom)
   map_id A := by
@@ -95,8 +98,8 @@ noncomputable def pointsFunctor : CommAlgCat.{u} R ⥤ GrpCat.{u} where
 
 namespace pointsFunctor
 
-variable {R H : Type u} [CommRing R] [Ring H] [_root_.HopfAlgebra R H]
-variable {A B : Type u} [CommRing A] [Algebra R A] [CommRing B] [Algebra R B]
+variable {R : Type u} {H : Type v} [CommRing R] [Semiring H] [_root_.HopfAlgebra R H]
+variable {A B : Type w} [CommRing A] [Algebra R A] [CommRing B] [Algebra R B]
 
 /-- Evaluating the points functor at `A` gives the convolution group of `A`-points. -/
 @[simp]
