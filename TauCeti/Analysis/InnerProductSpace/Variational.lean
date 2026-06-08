@@ -28,8 +28,33 @@ namespace Variational
 
 open InnerProductSpace
 
-variable {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V] [CompleteSpace V]
+variable {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V]
 variable {B : V →L[ℝ] V →L[ℝ] ℝ}
+
+/-- A coercive bilinear variational equation with zero right-hand side has only the zero
+solution. -/
+lemma eq_zero_of_forall_apply_eq_zero (hB : IsCoercive B) {u : V}
+    (hu : ∀ v, B u v = 0) :
+    u = 0 := by
+  rcases hB with ⟨C, C_pos, hcoercive⟩
+  rw [← norm_eq_zero, ← mul_self_eq_zero, ← mul_right_inj' C_pos.ne', mul_zero,
+    ← mul_assoc]
+  refine le_antisymm ?_ ?_
+  · calc
+      C * ‖u‖ * ‖u‖ ≤ B u u := hcoercive u
+      _ = 0 := hu u
+  · positivity
+
+/-- Two vectors satisfying the same variational equation are equal. -/
+lemma eq_of_forall_apply_eq_of_forall_apply_eq (hB : IsCoercive B) {ℓ : StrongDual ℝ V}
+    {u₁ u₂ : V} (hu₁ : ∀ v, B u₁ v = ℓ v) (hu₂ : ∀ v, B u₂ v = ℓ v) :
+    u₁ = u₂ := by
+  rw [← sub_eq_zero]
+  refine eq_zero_of_forall_apply_eq_zero hB ?_
+  intro v
+  simp [hu₁ v, hu₂ v]
+
+variable [CompleteSpace V]
 
 /-- The weak solution of the abstract variational equation associated to a coercive bilinear
 form and a continuous linear functional.
@@ -69,13 +94,6 @@ lemma eq_solution_of_forall_apply_eq (hB : IsCoercive B) (ℓ : StrongDual ℝ V
     _ = hB.continuousLinearEquivOfBilin.symm r := by rw [← hr]
     _ = solution hB ℓ := rfl
 
-/-- Two vectors satisfying the same variational equation are equal. -/
-lemma eq_of_forall_apply_eq_of_forall_apply_eq (hB : IsCoercive B) {ℓ : StrongDual ℝ V}
-    {u₁ u₂ : V} (hu₁ : ∀ v, B u₁ v = ℓ v) (hu₂ : ∀ v, B u₂ v = ℓ v) :
-    u₁ = u₂ := by
-  rw [eq_solution_of_forall_apply_eq hB ℓ hu₁,
-    eq_solution_of_forall_apply_eq hB ℓ hu₂]
-
 /-- Existence and uniqueness of the solution to the abstract variational equation. -/
 theorem existsUnique_forall_apply_eq (hB : IsCoercive B) (ℓ : StrongDual ℝ V) :
     ∃! u : V, ∀ v, B u v = ℓ v := by
@@ -84,16 +102,6 @@ theorem existsUnique_forall_apply_eq (hB : IsCoercive B) (ℓ : StrongDual ℝ V
     exact solution_spec hB ℓ v
   · intro u hu
     exact eq_solution_of_forall_apply_eq hB ℓ hu
-
-/-- A coercive bilinear variational equation with zero right-hand side has only the zero
-solution. -/
-lemma eq_zero_of_forall_apply_eq_zero (hB : IsCoercive B) {u : V}
-    (hu : ∀ v, B u v = 0) :
-    u = 0 := by
-  have hzero : u = solution hB (0 : StrongDual ℝ V) := by
-    refine eq_solution_of_forall_apply_eq hB 0 ?_
-    simpa using hu
-  simpa [solution] using hzero
 
 /-- The solution for the zero functional is zero. -/
 @[simp]
