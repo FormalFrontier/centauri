@@ -190,19 +190,6 @@ instance fiberContinuousConstSMul (b : B) :
     rw [h]
     exact (fiberHomeomorph φ b).continuous
 
-/-- Two points are in the same orbit for the induced action on a fibre exactly when their
-underlying points are in the same ambient `Deck p`-orbit. -/
-lemma mem_fiber_orbit_iff {b : B} {e e' : p ⁻¹' {b}} :
-    e' ∈ MulAction.orbit (Deck p) e ↔
-      (e' : E) ∈ MulAction.orbit (Deck p) (e : E) :=
-  SubMulAction.mem_orbit_subMul_iff (p := fiberSubMulAction (p := p) b)
-
-/-- Stabilizers for the induced action on a fibre agree with stabilizers of the underlying
-point for the ambient action on the total space. -/
-lemma fiber_stabilizer_eq {b : B} (e : p ⁻¹' {b}) :
-    MulAction.stabilizer (Deck p) e = MulAction.stabilizer (Deck p) (e : E) :=
-  SubMulAction.stabilizer_of_subMul (p := fiberSubMulAction (p := p) b) e
-
 -- `FaithfulSMul (Deck p) E` and `ContinuousConstSMul (Deck p) E` are inherited from the generic
 -- subgroup instances in `TauCeti.Topology.Algebra.HomeomorphAction`; `Deck p` is a `Subgroup`.
 
