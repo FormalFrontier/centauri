@@ -4,4 +4,5 @@
 -- `TauCetiRoadmap` or `TauCetiReview` (both enforced in CI). As the library
 -- grows, import the submodules of `TauCeti/` here.
 import TauCeti.Algebra.Coalgebra.ComoduleCat
+import TauCeti.Analysis.PDE.PointwiseEnergy
 import TauCeti.Basic
