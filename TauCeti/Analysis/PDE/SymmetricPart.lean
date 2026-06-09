@@ -101,21 +101,6 @@ lemma Matrix.IsSymm.coe_skewAdjointPart_eq_zero {A : Matrix n n ℝ} (hA : A.IsS
   rw [hji]
   simp
 
-omit [Fintype n] [DecidableEq n] in
-/-- Taking Mathlib's self-adjoint part is idempotent after coercion back to matrices. -/
-@[simp]
-lemma selfAdjointPart_selfAdjointPart (A : Matrix n n ℝ) :
-    (selfAdjointPart ℝ (selfAdjointPart ℝ A : Matrix n n ℝ) : Matrix n n ℝ) =
-      (selfAdjointPart ℝ A : Matrix n n ℝ) :=
-  Matrix.IsSymm.coe_selfAdjointPart_eq_self (isSymm_selfAdjointPart A)
-
-omit [Fintype n] [DecidableEq n] in
-/-- The skew-adjoint part of the self-adjoint part is zero after coercion back to matrices. -/
-@[simp]
-lemma skewAdjointPart_selfAdjointPart (A : Matrix n n ℝ) :
-    (skewAdjointPart ℝ (selfAdjointPart ℝ A : Matrix n n ℝ) : Matrix n n ℝ) = 0 :=
-  Matrix.IsSymm.coe_skewAdjointPart_eq_zero (isSymm_selfAdjointPart A)
-
 /-- Transposing a real matrix does not change its quadratic form. -/
 @[simp]
 lemma toQuadraticForm'_transpose (A : Matrix n n ℝ) (ξ : EuclideanSpace ℝ n) :
