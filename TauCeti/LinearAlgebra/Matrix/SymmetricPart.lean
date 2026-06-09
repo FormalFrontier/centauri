@@ -15,7 +15,7 @@ This file records the elementary real matrix API for the symmetric part `(A + A�
 ## Main declarations
 
 * `TauCeti.Matrix.symmetricPart`: the symmetric part `(A + Aᵀ) / 2` of a real square matrix.
-* `TauCeti.Matrix.symmetricPart_isSymm`: the symmetric part of any real square matrix is
+* `TauCeti.Matrix.isSymm_symmetricPart`: the symmetric part of any real square matrix is
   symmetric.
 * `TauCeti.Matrix.symmetricPart_of_isSymm`: a symmetric real square matrix equals its
   symmetric part.
@@ -58,7 +58,8 @@ noncomputable def symmetricPart (A : _root_.Matrix n n ℝ) : _root_.Matrix n n 
 
 omit [Fintype n] [DecidableEq n] in
 /-- The symmetric part of a matrix is symmetric. -/
-lemma symmetricPart_isSymm (A : _root_.Matrix n n ℝ) : (symmetricPart A).IsSymm :=
+@[simp]
+lemma isSymm_symmetricPart (A : _root_.Matrix n n ℝ) : (symmetricPart A).IsSymm :=
   (_root_.Matrix.isSymm_add_transpose_self A).smul _
 
 omit [Fintype n] [DecidableEq n] in

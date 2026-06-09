@@ -6,7 +6,6 @@ import Mathlib.Analysis.InnerProductSpace.PiL2
 import Mathlib.Analysis.Normed.Operator.Bilinear
 import Mathlib.Analysis.Normed.Operator.NormedSpace
 import Mathlib.LinearAlgebra.Matrix.BilinearForm
-import Mathlib.LinearAlgebra.Matrix.Symmetric
 import Mathlib.LinearAlgebra.QuadraticForm.Basic
 import Mathlib.Topology.Algebra.Module.FiniteDimensionBilinear
 import TauCeti.LinearAlgebra.Matrix.SymmetricPart
