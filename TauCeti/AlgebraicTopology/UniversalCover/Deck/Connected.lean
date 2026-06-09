@@ -9,8 +9,8 @@ import TauCeti.AlgebraicTopology.UniversalCover.Deck.Fiber
 # Deck transformations of connected covers
 
 For a covering projection with preconnected total space, two deck transformations are equal as
-soon as they agree at one point. Equivalently, the deck action on the total space is free, and
-the induced action on every fibre has trivial stabilizers.
+soon as they agree at one point. Equivalently, the deck action on the total space is
+cancellative, and so is the induced action on every fibre.
 
 This is a small prerequisite for the universal-covers roadmap Stage 2: the pointed and
 unpointed cover correspondences need to track deck transformations through their action on a
@@ -59,31 +59,6 @@ theorem eq_one_of_smul_eq_self [PreconnectedSpace E] (hp : IsCoveringMap p) (φ 
 theorem isCancelSMul [PreconnectedSpace E] (hp : IsCoveringMap p) : IsCancelSMul (Deck p) E where
   right_cancel' φ ψ _ h := eq_of_smul_eq_smul hp φ ψ h
 
-/-- The stabilizer of a point in the total space of a preconnected covering is trivial. -/
-@[simp]
-theorem stabilizer_eq_bot [PreconnectedSpace E] (hp : IsCoveringMap p) (e : E) :
-    MulAction.stabilizer (Deck p) e = ⊥ := by
-  rw [Subgroup.eq_bot_iff_forall]
-  intro φ hφ
-  exact eq_one_of_smul_eq_self hp φ hφ
-
-/-- If a subgroup of the deck group fixes a point of the total space of a preconnected
-covering, then that subgroup is trivial. -/
-theorem le_bot_of_le_stabilizer [PreconnectedSpace E] (hp : IsCoveringMap p)
-    {H : Subgroup (Deck p)} {e : E} (hH : H ≤ MulAction.stabilizer (Deck p) e) : H ≤ ⊥ := by
-  rw [stabilizer_eq_bot hp e] at hH
-  exact hH
-
-/-- A subgroup of the deck group fixes a point of the total space of a preconnected covering
-exactly when it is trivial. -/
-theorem le_stabilizer_iff [PreconnectedSpace E] (hp : IsCoveringMap p)
-    (H : Subgroup (Deck p)) (e : E) : H ≤ MulAction.stabilizer (Deck p) e ↔ H ≤ ⊥ := by
-  constructor
-  · exact le_bot_of_le_stabilizer hp
-  · intro hH
-    rw [stabilizer_eq_bot hp e]
-    exact hH
-
 section Fiber
 
 variable {b : B}
@@ -117,33 +92,6 @@ theorem eq_one_of_fiberHomeomorph_apply_eq_self [PreconnectedSpace E] (hp : IsCo
 theorem fiber_isCancelSMul [PreconnectedSpace E] (hp : IsCoveringMap p) :
     IsCancelSMul (Deck p) (p ⁻¹' {b}) where
   right_cancel' φ ψ _ h := eq_of_fiber_smul_eq_fiber_smul hp φ ψ h
-
-/-- The stabilizer of a point in a fibre of a preconnected covering is trivial. -/
-@[simp]
-theorem fiber_stabilizer_eq_bot [PreconnectedSpace E] (hp : IsCoveringMap p) (e : p ⁻¹' {b}) :
-    MulAction.stabilizer (Deck p) e = ⊥ := by
-  rw [Subgroup.eq_bot_iff_forall]
-  intro φ hφ
-  exact eq_one_of_fiber_smul_eq_self hp φ hφ
-
-/-- If a subgroup of the deck group fixes a point of a fibre of a preconnected covering, then
-that subgroup is trivial. -/
-theorem le_bot_of_le_fiber_stabilizer [PreconnectedSpace E] (hp : IsCoveringMap p)
-    {H : Subgroup (Deck p)} {e : p ⁻¹' {b}} (hH : H ≤ MulAction.stabilizer (Deck p) e) :
-    H ≤ ⊥ := by
-  rw [fiber_stabilizer_eq_bot hp e] at hH
-  exact hH
-
-/-- A subgroup of the deck group fixes a point of a fibre of a preconnected covering exactly
-when it is trivial. -/
-theorem le_fiber_stabilizer_iff [PreconnectedSpace E] (hp : IsCoveringMap p)
-    (H : Subgroup (Deck p)) (e : p ⁻¹' {b}) :
-    H ≤ MulAction.stabilizer (Deck p) e ↔ H ≤ ⊥ := by
-  constructor
-  · exact le_bot_of_le_fiber_stabilizer hp
-  · intro hH
-    rw [fiber_stabilizer_eq_bot hp e]
-    exact hH
 
 /-- For a nonempty fibre of a preconnected covering, restricting deck transformations to that
 fibre is injective. -/
