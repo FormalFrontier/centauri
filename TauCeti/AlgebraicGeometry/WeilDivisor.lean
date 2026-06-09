@@ -329,6 +329,11 @@ lemma degree_pointDifference (x y : X) : degree (pointDifference x y) = 0 := by
   simp [pointDifference]
 
 @[simp]
+lemma weightedDegree_pointDifference (w : X → ℤ) (x y : X) :
+    weightedDegree w (pointDifference x y) = w x - w y := by
+  simp [pointDifference]
+
+@[simp]
 lemma pointDifference_mem_degreeZeroSubgroup (x y : X) :
     pointDifference x y ∈ degreeZeroSubgroup X := by
   simp
@@ -389,7 +394,7 @@ lemma weightedDegree_coe_weightedDegreeZeroSubgroup (w : X → ℤ)
 @[simp]
 lemma pointDifference_mem_weightedDegreeZeroSubgroup {w : X → ℤ} {x y : X}
     (h : w x = w y) : pointDifference x y ∈ weightedDegreeZeroSubgroup w := by
-  simp [pointDifference, h]
+  simp [h]
 
 /-- Pushforward as a homomorphism on weighted degree-zero divisors, when the target weight
 pulls back to the source weight. -/
