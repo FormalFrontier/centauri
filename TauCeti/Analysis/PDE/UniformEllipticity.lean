@@ -175,15 +175,12 @@ lemma isCoercive_matrixBilinearForm_one :
   intro ξ
   simp
 
-/-- A positive scalar multiple of the identity matrix gives a coercive bilinear form, with
-any smaller positive coercivity constant. -/
-lemma isCoercive_matrixBilinearForm_smul_one_of_le {c lam : ℝ} (hlam : 0 < lam)
-    (hlamc : lam ≤ c) :
+/-- A positive scalar multiple of the identity matrix gives a coercive bilinear form. -/
+lemma isCoercive_matrixBilinearForm_smul_one {c : ℝ} (hc : 0 < c) :
     IsCoercive (matrixBilinearForm (c • (1 : Matrix n n ℝ))) := by
-  refine isCoercive_matrixBilinearForm_of_lower_bound (c • (1 : Matrix n n ℝ)) hlam ?_
+  refine isCoercive_matrixBilinearForm_of_lower_bound (c • (1 : Matrix n n ℝ)) hc ?_
   intro ξ
-  simp only [toQuadraticForm'_smul_one]
-  exact mul_le_mul_of_nonneg_right hlamc (sq_nonneg ‖ξ‖)
+  simp
 
 /-- Uniform ellipticity and boundedness with explicit constants on a domain.
 
