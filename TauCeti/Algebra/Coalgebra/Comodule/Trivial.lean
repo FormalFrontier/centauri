@@ -65,6 +65,18 @@ private def groupLike (g : GroupLike R C) : Comodule R C M where
     ext m
     simp [groupLikeCoact]
 
+@[simp]
+private theorem groupLike_coact_apply (g : GroupLike R C) (m : M) :
+    letI : Comodule R C M := groupLike (R := R) (C := C) (M := M) g
+    coact (R := R) (C := C) (M := M) m = m ⊗ₜ[R] (g : C) :=
+  rfl
+
+@[simp]
+private theorem groupLike_coact (g : GroupLike R C) :
+    letI : Comodule R C M := groupLike (R := R) (C := C) (M := M) g
+    coact (R := R) (C := C) (M := M) = (TensorProduct.mk R M C).flip (g : C) :=
+  rfl
+
 private def Hom.ofGroupLike (g : GroupLike R C) (f : M →ₗ[R] N) :
     letI : Comodule R C M := groupLike (R := R) (C := C) (M := M) g
     letI : Comodule R C N := groupLike (R := R) (C := C) (M := N) g
@@ -76,8 +88,8 @@ private def Hom.ofGroupLike (g : GroupLike R C) (f : M →ₗ[R] N) :
       map_coact := by
         ext m
         simp only [LinearMap.comp_apply]
-        rw [show coact (R := R) (C := C) (M := M) m = m ⊗ₜ[R] (g : C) by rfl]
-        rw [show coact (R := R) (C := C) (M := N) (f m) = f m ⊗ₜ[R] (g : C) by rfl]
+        rw [groupLike_coact_apply (R := R) (C := C) (M := M) g m]
+        rw [groupLike_coact_apply (R := R) (C := C) (M := N) g (f m)]
         simp }
 
 end GroupLikeDef
