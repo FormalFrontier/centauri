@@ -133,6 +133,7 @@ lemma fiberMap_mem_orbit (h : E ≃ₜ F) (hpq : ∀ e, q (h e) = p e) (φ : Dec
 
 /-- The fibre map carries the deck orbit of a point onto the deck orbit of the transported
 point. -/
+@[simp]
 theorem fiberMap_image_orbit (h : E ≃ₜ F) (hpq : ∀ e, q (h e) = p e) (e : p ⁻¹' {b}) :
     fiberMap h hpq b '' MulAction.orbit (Deck p) e =
       MulAction.orbit (Deck q) (fiberMap h hpq b e) := by
@@ -155,6 +156,7 @@ lemma fiberMap_symm_mem_orbit (h : E ≃ₜ F) (hpq : ∀ e, q (h e) = p e) (ψ 
 
 /-- The inverse fibre map carries the deck orbit of a point onto the deck orbit of the
 transported point. -/
+@[simp]
 theorem fiberMap_symm_image_orbit (h : E ≃ₜ F) (hpq : ∀ e, q (h e) = p e)
     (f : q ⁻¹' {b}) :
     (fiberMap h hpq b).symm '' MulAction.orbit (Deck q) f =
@@ -167,6 +169,41 @@ theorem fiberMap_symm_image_orbit (h : E ≃ₜ F) (hpq : ∀ e, q (h e) = p e)
   · rintro ⟨φ, rfl⟩
     refine ⟨conjMulEquiv h hpq φ • f, ⟨conjMulEquiv h hpq φ, rfl⟩, ?_⟩
     simpa using fiberMap_symm_smul h hpq (conjMulEquiv h hpq φ) f
+
+/-- Transporting both fibre points preserves membership in deck orbits. -/
+theorem mem_orbit_fiberMap_iff (h : E ≃ₜ F) (hpq : ∀ e, q (h e) = p e)
+    (e e' : p ⁻¹' {b}) :
+    fiberMap h hpq b e' ∈ MulAction.orbit (Deck q) (fiberMap h hpq b e) ↔
+      e' ∈ MulAction.orbit (Deck p) e := by
+  constructor
+  · rintro ⟨ψ, hψ⟩
+    refine ⟨(conjMulEquiv h hpq).symm ψ, ?_⟩
+    ext
+    have hcoe := congrArg h.symm (congrArg Subtype.val hψ)
+    simpa using hcoe
+  · rintro ⟨φ, hφ⟩
+    refine ⟨conjMulEquiv h hpq φ, ?_⟩
+    ext
+    have hcoe := congrArg h (congrArg Subtype.val hφ)
+    simpa using hcoe
+
+/-- Transporting both target-fibre points back preserves membership in deck orbits. -/
+theorem mem_orbit_fiberMap_symm_iff (h : E ≃ₜ F) (hpq : ∀ e, q (h e) = p e)
+    (f f' : q ⁻¹' {b}) :
+    (fiberMap h hpq b).symm f' ∈
+        MulAction.orbit (Deck p) ((fiberMap h hpq b).symm f) ↔
+      f' ∈ MulAction.orbit (Deck q) f := by
+  constructor
+  · rintro ⟨φ, hφ⟩
+    refine ⟨conjMulEquiv h hpq φ, ?_⟩
+    ext
+    have hcoe := congrArg h (congrArg Subtype.val hφ)
+    simpa using hcoe
+  · rintro ⟨ψ, hψ⟩
+    refine ⟨(conjMulEquiv h hpq).symm ψ, ?_⟩
+    ext
+    have hcoe := congrArg h.symm (congrArg Subtype.val hψ)
+    simpa using hcoe
 
 end Deck
 
