@@ -171,6 +171,7 @@ theorem fiberMap_symm_image_orbit (h : E ≃ₜ F) (hpq : ∀ e, q (h e) = p e)
     simpa using fiberMap_symm_smul h hpq (conjMulEquiv h hpq φ) f
 
 /-- Transporting both fibre points preserves membership in deck orbits. -/
+@[simp]
 theorem mem_orbit_fiberMap_iff (h : E ≃ₜ F) (hpq : ∀ e, q (h e) = p e)
     (e e' : p ⁻¹' {b}) :
     fiberMap h hpq b e' ∈ MulAction.orbit (Deck q) (fiberMap h hpq b e) ↔
@@ -188,6 +189,7 @@ theorem mem_orbit_fiberMap_iff (h : E ≃ₜ F) (hpq : ∀ e, q (h e) = p e)
     simpa using hcoe
 
 /-- Transporting both target-fibre points back preserves membership in deck orbits. -/
+@[simp]
 theorem mem_orbit_fiberMap_symm_iff (h : E ≃ₜ F) (hpq : ∀ e, q (h e) = p e)
     (f f' : q ⁻¹' {b}) :
     (fiberMap h hpq b).symm f' ∈
