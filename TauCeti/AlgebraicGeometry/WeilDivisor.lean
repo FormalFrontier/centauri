@@ -275,22 +275,6 @@ lemma mem_degreeZeroSubgroup (D : WeilDivisor X) :
   AddMonoidHom.mem_ker
 
 @[simp]
-lemma zero_mem_degreeZeroSubgroup : (0 : WeilDivisor X) ∈ degreeZeroSubgroup X := by
-  simp
-
-lemma degreeZeroSubgroup.add_mem {D E : WeilDivisor X} (hD : D ∈ degreeZeroSubgroup X)
-    (hE : E ∈ degreeZeroSubgroup X) : D + E ∈ degreeZeroSubgroup X :=
-  (degreeZeroSubgroup X).add_mem hD hE
-
-lemma degreeZeroSubgroup.neg_mem {D : WeilDivisor X} (hD : D ∈ degreeZeroSubgroup X) :
-    -D ∈ degreeZeroSubgroup X :=
-  (degreeZeroSubgroup X).neg_mem hD
-
-lemma degreeZeroSubgroup.sub_mem {D E : WeilDivisor X} (hD : D ∈ degreeZeroSubgroup X)
-    (hE : E ∈ degreeZeroSubgroup X) : D - E ∈ degreeZeroSubgroup X :=
-  (degreeZeroSubgroup X).sub_mem hD hE
-
-@[simp]
 lemma degree_coe_degreeZeroSubgroup (D : degreeZeroSubgroup X) :
     degree (D : WeilDivisor X) = 0 :=
   D.property
@@ -312,6 +296,22 @@ lemma coeff_pointDifference_left (x y : X) :
 lemma coeff_pointDifference_right (x y : X) :
     coeff (pointDifference x y) y = coeff (ofPoint x) y - 1 := by
   simp [pointDifference]
+
+@[simp]
+lemma coeff_pointDifference [DecidableEq X] (x y z : X) :
+    coeff (pointDifference x y) z =
+      (if z = x then 1 else 0) - (if z = y then 1 else 0) := by
+  by_cases hx : z = x
+  · by_cases hy : z = y
+    · subst hx
+      subst hy
+      simp [pointDifference, ofPoint, coeff]
+    · subst hx
+      simp [pointDifference, ofPoint, coeff, hy]
+  · by_cases hy : z = y
+    · subst hy
+      simp [pointDifference, ofPoint, coeff, hx]
+    · simp [pointDifference, ofPoint, coeff, hx, hy]
 
 lemma support_pointDifference_subset [DecidableEq X] (x y : X) :
     (pointDifference x y).support ⊆ {x, y} := by
