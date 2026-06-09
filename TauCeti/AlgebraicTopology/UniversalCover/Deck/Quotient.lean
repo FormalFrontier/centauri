@@ -70,16 +70,6 @@ private lemma orbitRel_eq_ker_of_exists_apply_eq
         rw [← hφ, Homeomorph.symm_apply_apply]
       simpa [smul_eq_apply] using hinv⟩
 
-/-- If deck orbits are exactly fibres of `p`, the orbit quotient map to the base is
-injective. -/
-lemma orbitQuotientToBase_injective_of_exists_apply_eq
-    (hpoint : ∀ {e e' : E}, p e = p e' → ∃ φ : Deck p, φ.1 e = e') :
-    Function.Injective (orbitQuotientToBase p) := by
-  exact (Setoid.lift_injective_iff_ker_eq_of_le
-    (r := MulAction.orbitRel (Deck p) E) (f := p)
-    (fun _ _ h => eq_proj_of_orbitRel h)).mpr
-      (orbitRel_eq_ker_of_exists_apply_eq hpoint).symm
-
 /-- An over-base homeomorphism preserves the corresponding deck-orbit relations. -/
 private lemma orbitRel_homeomorph_iff (h : E ≃ₜ F) (hpq : ∀ e, q (h e) = p e) (e e' : E) :
     MulAction.orbitRel (Deck p) E e e' ↔
@@ -135,9 +125,11 @@ namespace IsRegular
 
 /-- For a regular deck action, the map from deck-orbit quotient to the base is injective. -/
 lemma orbitQuotientToBase_injective (hreg : IsRegular p) :
-    Function.Injective (orbitQuotientToBase p) :=
-  orbitQuotientToBase_injective_of_exists_apply_eq
-    (isRegular_iff_exists_apply_eq.mp hreg).2
+    Function.Injective (orbitQuotientToBase p) := by
+  exact (Setoid.lift_injective_iff_ker_eq_of_le
+    (r := MulAction.orbitRel (Deck p) E) (f := p)
+    (fun _ _ h => eq_proj_of_orbitRel h)).mpr
+      (orbitRel_eq_ker_of_exists_apply_eq (isRegular_iff_exists_apply_eq.mp hreg).2).symm
 
 /-- A regular deck action identifies the quotient of the total space by deck orbits with the
 base. -/
