@@ -68,10 +68,22 @@ namespace BialgHom
 variable {R A B : Type*} [CommSemiring R]
 variable [Semiring A] [Semiring B] [_root_.HopfAlgebra R A] [_root_.HopfAlgebra R B]
 
+/-- The algebra-hom projection of a bialgebra hom has the same underlying linear map as the
+bialgebra hom itself. -/
+private lemma toAlgHom_toLinearMap (φ : A →ₐc[R] B) :
+    (φ : A →ₐ[R] B).toLinearMap = φ.toLinearMap :=
+  _root_.BialgHom.toAlgHom_toLinearMap φ
+
 /-- The coalgebra-hom projection of a bialgebra hom has the same underlying linear map as the
 bialgebra hom itself. -/
 private lemma toCoalgHom_toLinearMap (φ : A →ₐc[R] B) :
     (φ.toCoalgHom : A →ₗ[R] B) = φ.toLinearMap :=
+  rfl
+
+/-- The coalgebra-hom coercion of a bialgebra hom has the same underlying linear map as the
+bialgebra hom itself. -/
+private lemma coe_coalgHom_toLinearMap (φ : A →ₐc[R] B) :
+    ((φ : A →ₗc[R] B) : A →ₗ[R] B) = φ.toLinearMap :=
   rfl
 
 /-- Applying an algebra homomorphism to a convolution product, oriented so it rewrites the
@@ -80,10 +92,9 @@ private lemma algHom_comp_convMul_ofConv (φ : A →ₐc[R] B) (f g : A →ₗ[R
     (toConv (φ.toLinearMap.comp f) *
           toConv (φ.toLinearMap.comp g)).ofConv =
       φ.toLinearMap.comp (toConv f * toConv g).ofConv := by
-  change
-    (toConv ((φ : A →ₐ[R] B).toLinearMap.comp f) *
-          toConv ((φ : A →ₐ[R] B).toLinearMap.comp g)).ofConv =
-      (φ : A →ₐ[R] B).toLinearMap.comp (toConv f * toConv g).ofConv
+  have hφ : φ.toLinearMap = (φ : A →ₐ[R] B).toLinearMap :=
+    (toAlgHom_toLinearMap φ).symm
+  rw [hφ]
   simpa using
     (LinearMap.algHom_comp_convMul_distrib (φ : A →ₐ[R] B) (toConv f) (toConv g)).symm
 
@@ -93,10 +104,9 @@ private lemma convMul_comp_coalgHom_ofConv (f g : B →ₗ[R] B) (φ : A →ₐc
     (toConv (f.comp φ.toLinearMap) *
           toConv (g.comp φ.toLinearMap)).ofConv =
       (toConv f * toConv g).ofConv.comp φ.toLinearMap := by
-  change
-    (toConv (f.comp (φ : A →ₗc[R] B).toLinearMap) *
-          toConv (g.comp (φ : A →ₗc[R] B).toLinearMap)).ofConv =
-      (toConv f * toConv g).ofConv.comp (φ : A →ₗc[R] B).toLinearMap
+  have hφ : φ.toLinearMap = ((φ : A →ₗc[R] B) : A →ₗ[R] B) :=
+    (coe_coalgHom_toLinearMap φ).symm
+  rw [hφ]
   simpa using
     (LinearMap.convMul_comp_coalgHom_distrib (toConv f) (toConv g)
       (φ : A →ₗc[R] B)).symm
