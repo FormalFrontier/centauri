@@ -57,27 +57,12 @@ lemma fiberOrbitClass_eq_mk (e : p ⁻¹' {b}) :
     fiberOrbitClass e = (Quotient.mk'' e : FiberOrbitQuotient p b) :=
   rfl
 
-/-- Two fibre points have the same deck-orbit class exactly when the first belongs to the
-deck orbit of the second. -/
-lemma fiberOrbitClass_eq_iff_mem_orbit (e e' : p ⁻¹' {b}) :
-    fiberOrbitClass e = fiberOrbitClass e' ↔ e ∈ MulAction.orbit (Deck p) e' := by
-  exact Quotient.eq''.trans MulAction.orbitRel_apply
-
 /-- A deck transform of a fibre point has the same deck-orbit class. -/
 @[simp]
 lemma fiberOrbitClass_smul (φ : Deck p) (e : p ⁻¹' {b}) :
     fiberOrbitClass (φ • e) = fiberOrbitClass e := by
-  rw [fiberOrbitClass_eq_iff_mem_orbit]
+  rw [fiberOrbitClass_eq_mk, fiberOrbitClass_eq_mk, Quotient.eq'', MulAction.orbitRel_apply]
   exact MulAction.mem_orbit _ φ
-
-/-- The fibre-orbit class of a deck transform of a point is the original class, in the
-orientation useful for rewriting hypotheses. -/
-lemma fiberOrbitClass_eq_of_mem_orbit {e e' : p ⁻¹' {b}}
-    (h : e' ∈ MulAction.orbit (Deck p) e) :
-    fiberOrbitClass e' = fiberOrbitClass e := by
-  have hmem : e' ∈ (fiberOrbitClass e).orbit := by
-    simpa [fiberOrbitClass_eq_mk, MulAction.orbitRel.Quotient.orbit_mk] using h
-  exact MulAction.orbitRel.Quotient.mem_orbit.mp hmem
 
 /-- An over-base homeomorphism identifies deck-orbit quotients of corresponding fibres. -/
 def fiberOrbitQuotientEquiv (h : E ≃ₜ F) (hpq : ∀ e, q (h e) = p e) (b : B) :
