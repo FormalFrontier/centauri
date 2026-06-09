@@ -332,36 +332,6 @@ lemma norm_point_matrixBilinearForm_le_mul_of_norm_le
   (matrixBilinearForm (a x)).le_of_opNorm₂_le_of_le
     (h.opNorm_matrixBilinearForm_le hx) hη hξ
 
-/-- Uniform ellipticity bounds the bilinear-form value on vectors in the closed ball of
-radius `R`. -/
-lemma norm_point_matrixBilinearForm_le_mul_of_norm_le_same_radius
-    (h : UniformlyEllipticOn Ω a lam Lam) {x : X} (hx : x ∈ Ω) {R : ℝ}
-    {η ξ : EuclideanSpace ℝ n} (hη : ‖η‖ ≤ R) (hξ : ‖ξ‖ ≤ R) :
-    ‖matrixBilinearForm (a x) η ξ‖ ≤ Lam * R * R :=
-  h.norm_point_matrixBilinearForm_le_mul_of_norm_le hx hη hξ
-
-/-- Uniform ellipticity bounds the coefficient integrand on unit vectors by the upper
-ellipticity constant. -/
-lemma norm_point_matrixBilinearForm_le_of_norm_le_one
-    (h : UniformlyEllipticOn Ω a lam Lam) {x : X} (hx : x ∈ Ω)
-    {η ξ : EuclideanSpace ℝ n} (hη : ‖η‖ ≤ 1) (hξ : ‖ξ‖ ≤ 1) :
-    ‖matrixBilinearForm (a x) η ξ‖ ≤ Lam := by
-  simpa using h.norm_point_matrixBilinearForm_le_mul_of_norm_le hx hη hξ
-
-/-- If the coefficient field is uniformly elliptic on a larger domain, the pointwise
-operator-norm bound remains available after restricting the domain. -/
-lemma opNorm_matrixBilinearForm_le_of_mem_of_subset
-    (h : UniformlyEllipticOn Ω a lam Lam) (hΩ : Ω' ⊆ Ω) {x : X} (hx : x ∈ Ω') :
-    ‖matrixBilinearForm (a x)‖ ≤ Lam :=
-  h.opNorm_matrixBilinearForm_le (hΩ hx)
-
-/-- Increasing the upper constant preserves the pointwise operator-norm estimate with the
-new upper constant. -/
-lemma opNorm_matrixBilinearForm_le_of_upper_le (h : UniformlyEllipticOn Ω a lam Lam)
-    (hLam_le : Lam ≤ Lam') {x : X} (hx : x ∈ Ω) :
-    ‖matrixBilinearForm (a x)‖ ≤ Lam' :=
-  (h.opNorm_matrixBilinearForm_le hx).trans hLam_le
-
 /-- At every point of the domain, uniform ellipticity gives coercivity of the attached matrix
 bilinear form. -/
 @[grind =>]
