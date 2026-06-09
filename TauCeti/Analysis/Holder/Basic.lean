@@ -141,11 +141,11 @@ noncomputable instance : Sub (HolderMap α β r) where
 
 @[simp]
 lemma sub_apply (f g : HolderMap α β r) (x : α) : (f - g) x = f x - g x := by
+  -- `Sub` is defined through the already-proved `Add` and `Neg` closure operations.
   change (f + -g : HolderMap α β r) x = f x - g x
   simp [sub_eq_add_neg]
 
-noncomputable instance [SeminormedRing 𝕜] [Module 𝕜 β] [ContinuousConstSMul 𝕜 β]
-    [IsBoundedSMul 𝕜 β] :
+noncomputable instance [SeminormedRing 𝕜] [Module 𝕜 β] [IsBoundedSMul 𝕜 β] :
     SMul 𝕜 (HolderMap α β r) where
   smul c f :=
     { toBoundedContinuousFunction := c • f.toBCF
@@ -154,8 +154,8 @@ noncomputable instance [SeminormedRing 𝕜] [Module 𝕜 β] [ContinuousConstSM
         exact f.memHolder.smul (c := c) }
 
 @[simp]
-lemma smul_apply [SeminormedRing 𝕜] [Module 𝕜 β] [ContinuousConstSMul 𝕜 β]
-    [IsBoundedSMul 𝕜 β] (c : 𝕜) (f : HolderMap α β r) (x : α) :
+lemma smul_apply [SeminormedRing 𝕜] [Module 𝕜 β] [IsBoundedSMul 𝕜 β] (c : 𝕜)
+    (f : HolderMap α β r) (x : α) :
     (c • f) x = c • f x :=
   rfl
 
@@ -206,6 +206,29 @@ lemma holderSeminorm_le_holderSize (f : HolderMap α β r) :
 lemma holderSize_nonneg (f : HolderMap α β r) : 0 ≤ f.holderSize :=
   add_nonneg f.supNorm_nonneg f.holderSeminorm_nonneg
 
+/-- Restriction to a subtype does not increase the sup norm. -/
+lemma supNorm_restrict_le (f : HolderMap α β r) (s : Set α) :
+    supNorm (f.restrict s) ≤ f.supNorm := by
+  rw [supNorm]
+  exact BoundedContinuousFunction.norm_le f.supNorm_nonneg |>.2 fun x =>
+    f.norm_apply_le_supNorm x
+
+/-- Restriction to a subtype does not increase the Hölder seminorm. -/
+lemma holderSeminorm_restrict_le (f : HolderMap α β r) (s : Set α) :
+    holderSeminorm (f.restrict s) ≤ f.holderSeminorm := by
+  exact (HolderWith.restrict_iff.mpr (f.holderWith.holderOnWith s)).nnholderNorm_le
+
+/-- Restriction to a subtype does not increase the zero-order Hölder size. -/
+lemma holderSize_restrict_le (f : HolderMap α β r) (s : Set α) :
+    holderSize (f.restrict s) ≤ f.holderSize := by
+  rw [holderSize, holderSize]
+  have hsup := supNorm_restrict_le f s
+  have hholder := holderSeminorm_restrict_le f s
+  have hholder_real :
+      ((f.restrict s).holderSeminorm : ℝ) ≤ f.holderSeminorm := by
+    exact_mod_cast hholder
+  linarith
+
 @[simp]
 lemma holderSeminorm_const (b : β) :
     holderSeminorm (const α r b) = 0 := by
@@ -235,8 +258,8 @@ lemma supNorm_add_le (f g : HolderMap α β r) :
   exact norm_add_le f.toBCF g.toBCF
 
 /-- Scalar multiplication grows the sup norm by at most the scalar norm. -/
-lemma supNorm_smul_le [SeminormedRing 𝕜] [Module 𝕜 β] [ContinuousConstSMul 𝕜 β]
-    [IsBoundedSMul 𝕜 β] (c : 𝕜) (f : HolderMap α β r) :
+lemma supNorm_smul_le [SeminormedRing 𝕜] [Module 𝕜 β] [IsBoundedSMul 𝕜 β] (c : 𝕜)
+    (f : HolderMap α β r) :
     supNorm (c • f) ≤ ‖c‖ * f.supNorm := by
   rw [supNorm, supNorm]
   exact norm_smul_le c f.toBCF
@@ -247,10 +270,17 @@ lemma holderSeminorm_add_le (f g : HolderMap α β r) :
   exact f.memHolder.nnHolderNorm_add_le g.memHolder
 
 /-- Scalar multiplication scales the Hölder seminorm by `‖c‖₊`. -/
-lemma holderSeminorm_smul [NormedRing 𝕜] [Module 𝕜 β] [ContinuousConstSMul 𝕜 β]
-    [NormSMulClass 𝕜 β] [IsBoundedSMul 𝕜 β] (c : 𝕜) (f : HolderMap α β r) :
+lemma holderSeminorm_smul [NormedRing 𝕜] [Module 𝕜 β] [NormSMulClass 𝕜 β]
+    [IsBoundedSMul 𝕜 β] (c : 𝕜) (f : HolderMap α β r) :
     holderSeminorm (c • f) = ‖c‖₊ * f.holderSeminorm := by
   exact f.memHolder.nnHolderNorm_smul c
+
+/-- Scalar multiplication grows the Hölder seminorm by at most `‖c‖₊`. -/
+lemma holderSeminorm_smul_le [SeminormedRing 𝕜] [Module 𝕜 β] [IsBoundedSMul 𝕜 β]
+    (c : 𝕜) (f : HolderMap α β r) :
+    holderSeminorm (c • f) ≤ ‖c‖₊ * f.holderSeminorm := by
+  change nnHolderNorm r (c • (f : α → β)) ≤ ‖c‖₊ * nnHolderNorm r (f : α → β)
+  simpa [mul_comm] using (f.holderWith.smul c).nnholderNorm_le
 
 /-- The zero-order Hölder size is subadditive on bundled Hölder maps. -/
 lemma holderSize_add_le (f g : HolderMap α β r) :
@@ -264,14 +294,14 @@ lemma holderSize_add_le (f g : HolderMap α β r) :
   linarith
 
 /-- Scalar multiplication grows the zero-order Hölder size by at most the scalar norm. -/
-lemma holderSize_smul_le [NormedRing 𝕜] [Module 𝕜 β] [ContinuousConstSMul 𝕜 β]
-    [NormSMulClass 𝕜 β] [IsBoundedSMul 𝕜 β] (c : 𝕜) (f : HolderMap α β r) :
+lemma holderSize_smul_le [SeminormedRing 𝕜] [Module 𝕜 β] [IsBoundedSMul 𝕜 β] (c : 𝕜)
+    (f : HolderMap α β r) :
     holderSize (c • f) ≤ ‖c‖ * f.holderSize := by
   rw [holderSize, holderSize]
   have hsup := supNorm_smul_le c f
-  have hholder := holderSeminorm_smul c f
-  rw [hholder]
-  simp only [NNReal.coe_mul, coe_nnnorm]
+  have hholder := holderSeminorm_smul_le c f
+  have hholder_real : ((c • f).holderSeminorm : ℝ) ≤ ‖c‖ * f.holderSeminorm := by
+    exact_mod_cast hholder
   nlinarith [f.holderSeminorm_nonneg, norm_nonneg c]
 
 end HolderMap
