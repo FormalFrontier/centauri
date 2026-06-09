@@ -14,3 +14,4 @@ import TauCeti.AlgebraicTopology.UniversalCover.Deck.FiberTransport
 import TauCeti.AlgebraicTopology.UniversalCover.Deck.Regular
 import TauCeti.Analysis.PDE.UniformEllipticity
 import TauCeti.Basic
+import TauCeti.LinearAlgebra.Matrix.SymmetricPart

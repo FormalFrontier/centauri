@@ -9,6 +9,7 @@ import Mathlib.LinearAlgebra.Matrix.BilinearForm
 import Mathlib.LinearAlgebra.Matrix.Symmetric
 import Mathlib.LinearAlgebra.QuadraticForm.Basic
 import Mathlib.Topology.Algebra.Module.FiniteDimensionBilinear
+import TauCeti.LinearAlgebra.Matrix.SymmetricPart
 
 /-!
 # Uniform ellipticity for divergence-form PDE coefficients
@@ -59,29 +60,16 @@ namespace TauCeti
 
 namespace PDE
 
-open Matrix
+open _root_.Matrix
 
 variable {X n : Type*} [Fintype n] [DecidableEq n]
-
-/-- Mathlib's matrix quadratic form is the dot-product expression `ξᵀ A ξ`. -/
-lemma toQuadraticForm'_eq_dotProduct (A : Matrix n n ℝ) (ξ : EuclideanSpace ℝ n) :
-    A.toQuadraticForm' ξ = ξ ⬝ᵥ (A *ᵥ ξ) := by
-  rw [Matrix.toQuadraticForm',
-    LinearMap.BilinMap.toQuadraticMap_apply, Matrix.toLinearMap₂'_apply']
 
 /-- The identity matrix has quadratic form `‖ξ‖²`. -/
 @[simp]
 lemma toQuadraticForm'_one (ξ : EuclideanSpace ℝ n) :
     (1 : Matrix n n ℝ).toQuadraticForm' ξ = ‖ξ‖ ^ 2 := by
-  rw [toQuadraticForm'_eq_dotProduct, one_mulVec]
+  rw [TauCeti.Matrix.toQuadraticForm'_eq_dotProduct, one_mulVec]
   simpa [dotProduct, sq] using (EuclideanSpace.real_norm_sq_eq ξ).symm
-
-/-- Transposition does not change the quadratic form associated to a real matrix. -/
-@[simp]
-lemma toQuadraticForm'_transpose (A : Matrix n n ℝ) (ξ : EuclideanSpace ℝ n) :
-    Aᵀ.toQuadraticForm' ξ = A.toQuadraticForm' ξ := by
-  rw [toQuadraticForm'_eq_dotProduct, toQuadraticForm'_eq_dotProduct,
-    dotProduct_transpose_mulVec]
 
 omit [DecidableEq n] in
 /-- The continuous bilinear form attached to a real matrix on Euclidean space.
@@ -116,19 +104,11 @@ lemma matrixBilinearForm_transpose_apply (A : Matrix n n ℝ)
     matrixBilinearForm Aᵀ η ξ = matrixBilinearForm A ξ η := by
   rw [matrixBilinearForm_apply, matrixBilinearForm_apply, dotProduct_transpose_mulVec]
 
-/-- Matrix quadratic forms are linear in scalar multiplication of the coefficient matrix. -/
-@[simp]
-lemma toQuadraticForm'_smul (c : ℝ) (A : Matrix n n ℝ) (ξ : EuclideanSpace ℝ n) :
-    (c • A).toQuadraticForm' ξ = c * A.toQuadraticForm' ξ := by
-  rw [toQuadraticForm'_eq_dotProduct, toQuadraticForm'_eq_dotProduct, smul_mulVec,
-    dotProduct_smul]
-  simp [smul_eq_mul]
-
 /-- The scalar identity matrix has quadratic form `c ‖ξ‖²`. -/
 @[simp]
 lemma toQuadraticForm'_smul_one (c : ℝ) (ξ : EuclideanSpace ℝ n) :
     (c • (1 : Matrix n n ℝ)).toQuadraticForm' ξ = c * ‖ξ‖ ^ 2 := by
-  rw [toQuadraticForm'_smul, toQuadraticForm'_one]
+  rw [TauCeti.Matrix.toQuadraticForm'_smul, toQuadraticForm'_one]
 
 /-- Matrix bilinear forms are linear in scalar multiplication of the coefficient matrix. -/
 @[simp]
@@ -148,43 +128,18 @@ lemma matrixBilinearForm_smul_one_apply (c : ℝ) (η ξ : EuclideanSpace ℝ n)
 @[simp]
 lemma matrixBilinearForm_self (A : Matrix n n ℝ) (ξ : EuclideanSpace ℝ n) :
     matrixBilinearForm A ξ ξ = A.toQuadraticForm' ξ := by
-  rw [matrixBilinearForm_apply, toQuadraticForm'_eq_dotProduct]
-
-/-- The symmetric part `(A + Aᵀ) / 2` of a real square matrix. -/
-noncomputable def symmetricPart (A : Matrix n n ℝ) : Matrix n n ℝ :=
-  (2⁻¹ : ℝ) • (A + Aᵀ)
-
-omit [Fintype n] [DecidableEq n] in
-/-- The symmetric part of a matrix is symmetric. -/
-lemma symmetricPart_isSymm (A : Matrix n n ℝ) : (symmetricPart A).IsSymm :=
-  (isSymm_add_transpose_self A).smul _
-
-omit [Fintype n] [DecidableEq n] in
-/-- A symmetric matrix is equal to its symmetric part. -/
-lemma symmetricPart_of_isSymm {A : Matrix n n ℝ} (hA : A.IsSymm) :
-    symmetricPart A = A := by
-  ext i j
-  simp [symmetricPart, hA.eq]
-  ring
-
-/-- The symmetric part has the same quadratic form as the original matrix. -/
-@[simp]
-lemma toQuadraticForm'_symmetricPart (A : Matrix n n ℝ) (ξ : EuclideanSpace ℝ n) :
-    (symmetricPart A).toQuadraticForm' ξ = A.toQuadraticForm' ξ := by
-  rw [toQuadraticForm'_eq_dotProduct, toQuadraticForm'_eq_dotProduct]
-  simp only [symmetricPart, smul_mulVec, add_mulVec, dotProduct_smul, dotProduct_add,
-    smul_eq_mul, dotProduct_transpose_mulVec]
-  ring
+  rw [matrixBilinearForm_apply, TauCeti.Matrix.toQuadraticForm'_eq_dotProduct]
 
 /-- The bilinear form of the symmetric part is the average of the two swapped coefficient
 bilinear forms. -/
+@[simp]
 lemma matrixBilinearForm_symmetricPart_apply (A : Matrix n n ℝ)
     (η ξ : EuclideanSpace ℝ n) :
-    matrixBilinearForm (symmetricPart A) η ξ =
+    matrixBilinearForm (TauCeti.Matrix.symmetricPart A) η ξ =
       (2⁻¹ : ℝ) * (matrixBilinearForm A η ξ + matrixBilinearForm A ξ η) := by
   rw [matrixBilinearForm_apply, matrixBilinearForm_apply, matrixBilinearForm_apply]
-  simp only [symmetricPart, smul_mulVec, add_mulVec, dotProduct_smul, dotProduct_add,
-    smul_eq_mul, dotProduct_transpose_mulVec]
+  simp only [TauCeti.Matrix.symmetricPart, smul_mulVec, add_mulVec, dotProduct_smul,
+    dotProduct_add, smul_eq_mul, dotProduct_transpose_mulVec]
 
 /-- A pointwise bilinear upper bound gives the corresponding norm estimate for the bundled
 continuous bilinear form. -/
@@ -406,10 +361,10 @@ lemma transpose (h : UniformlyEllipticOn Ω a lam Lam) :
 
 /-- The symmetric part of the coefficient field has the same uniform ellipticity constants. -/
 lemma symmetricPart (h : UniformlyEllipticOn Ω a lam Lam) :
-    UniformlyEllipticOn Ω (fun x => PDE.symmetricPart (a x)) lam Lam := by
+    UniformlyEllipticOn Ω (fun x => TauCeti.Matrix.symmetricPart (a x)) lam Lam := by
   refine of_bounds h.pos h.le (fun {x} hx ξ => ?_) (fun {x} hx η ξ => ?_)
   · simpa using h.lower_bound hx ξ
-  · rw [PDE.symmetricPart, smul_mulVec, add_mulVec, dotProduct_smul, dotProduct_add]
+  · rw [TauCeti.Matrix.symmetricPart, smul_mulVec, add_mulVec, dotProduct_smul, dotProduct_add]
     simp only [smul_eq_mul, dotProduct_transpose_mulVec]
     set N : ℝ := ‖η‖ * ‖ξ‖
     have hηξ : |η ⬝ᵥ (a x *ᵥ ξ)| ≤ Lam * N := by
@@ -429,12 +384,6 @@ lemma symmetricPart (h : UniformlyEllipticOn Ω a lam Lam) :
       _ = Lam * ‖η‖ * ‖ξ‖ := by
             simp [N]
             ring
-
-omit [Fintype n] [DecidableEq n] in
-/-- The symmetric part of each coefficient matrix is symmetric. -/
-lemma symmetricPart_isSymm (a : X → Matrix n n ℝ) (x : X) :
-    (PDE.symmetricPart (a x)).IsSymm :=
-  PDE.symmetricPart_isSymm (a x)
 
 end UniformlyEllipticOn
 
