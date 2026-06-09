@@ -3,7 +3,10 @@ Copyright (c) 2026 The Tau Ceti contributors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
 import Mathlib.Analysis.InnerProductSpace.PiL2
+import Mathlib.Analysis.Normed.Operator.NormedSpace
+import Mathlib.LinearAlgebra.Matrix.BilinearForm
 import Mathlib.LinearAlgebra.QuadraticForm.Basic
+import Mathlib.Topology.Algebra.Module.FiniteDimensionBilinear
 
 /-!
 # Uniform ellipticity for divergence-form PDE coefficients
@@ -30,6 +33,10 @@ and Lax--Milgram arguments: constants are parameters, not hidden existential dat
   predicate.
 * `TauCeti.PDE.UniformlyEllipticOn.mono_set`: restriction to a smaller domain preserves the
   predicate.
+* `TauCeti.PDE.matrixBilinearForm`: the bounded bilinear form `η, ξ ↦ ηᵀ A ξ` attached to
+  a coefficient matrix.
+* `TauCeti.PDE.UniformlyEllipticOn.isCoercive_matrixBilinearForm`: pointwise coercivity of
+  the bilinear form attached to a uniformly elliptic coefficient field.
 
 The vectors are `EuclideanSpace ℝ n`, matching the roadmap's bounded open subsets of
 `ℝⁿ`; this type is reducibly a finite `L²` product, so Mathlib's matrix-vector API applies
@@ -56,6 +63,63 @@ lemma toQuadraticForm'_one (ξ : EuclideanSpace ℝ n) :
     (1 : Matrix n n ℝ).toQuadraticForm' ξ = ‖ξ‖ ^ 2 := by
   rw [toQuadraticForm'_eq_dotProduct, one_mulVec]
   simpa [dotProduct, sq] using (EuclideanSpace.real_norm_sq_eq ξ).symm
+
+omit [DecidableEq n] in
+/-- The continuous bilinear form attached to a real matrix on Euclidean space.
+
+For a coefficient matrix `A`, this is the pointwise weak-form integrand
+`(η, ξ) ↦ ηᵀ A ξ`. It is bundled as a continuous bilinear map so it can feed directly into
+Mathlib's bounded-bilinear-form and Lax--Milgram APIs once the corresponding Sobolev spaces
+are available. -/
+noncomputable def matrixBilinearForm (A : Matrix n n ℝ) :
+    EuclideanSpace ℝ n →L[ℝ] EuclideanSpace ℝ n →L[ℝ] ℝ :=
+  (A.toBilin'.comp (EuclideanSpace.equiv n ℝ).toLinearMap
+    (EuclideanSpace.equiv n ℝ).toLinearMap).toContinuousBilinearMap
+
+/-- The matrix bilinear form is the dot-product expression `ηᵀ A ξ`. -/
+@[simp]
+lemma matrixBilinearForm_apply (A : Matrix n n ℝ) (η ξ : EuclideanSpace ℝ n) :
+    matrixBilinearForm A η ξ = η ⬝ᵥ (A *ᵥ ξ) := by
+  rw [matrixBilinearForm, LinearMap.toContinuousBilinearMap_apply,
+    LinearMap.BilinForm.comp_apply, Matrix.toBilin'_apply']
+  rfl
+
+/-- The matrix bilinear form associated to the identity matrix is the Euclidean dot product. -/
+@[simp]
+lemma matrixBilinearForm_one_apply (η ξ : EuclideanSpace ℝ n) :
+    matrixBilinearForm (1 : Matrix n n ℝ) η ξ = η ⬝ᵥ ξ := by
+  rw [matrixBilinearForm_apply, one_mulVec]
+
+/-- The quadratic part of the matrix bilinear form is the matrix quadratic form. -/
+@[simp]
+lemma matrixBilinearForm_self (A : Matrix n n ℝ) (ξ : EuclideanSpace ℝ n) :
+    matrixBilinearForm A ξ ξ = A.toQuadraticForm' ξ := by
+  rw [matrixBilinearForm_apply, toQuadraticForm'_eq_dotProduct]
+
+/-- A pointwise bilinear upper bound gives the corresponding norm estimate for the bundled
+continuous bilinear form. -/
+lemma norm_matrixBilinearForm_le_of_upper_bound (A : Matrix n n ℝ) {Lam : ℝ}
+    (hA : ∀ η ξ : EuclideanSpace ℝ n, |η ⬝ᵥ (A *ᵥ ξ)| ≤ Lam * ‖η‖ * ‖ξ‖)
+    (η ξ : EuclideanSpace ℝ n) :
+    ‖matrixBilinearForm A η ξ‖ ≤ Lam * ‖η‖ * ‖ξ‖ := by
+  simpa [Real.norm_eq_abs] using hA η ξ
+
+/-- A pointwise quadratic lower bound makes the associated matrix bilinear form coercive in
+Mathlib's Lax--Milgram sense. -/
+lemma isCoercive_matrixBilinearForm_of_lower_bound (A : Matrix n n ℝ) {lam : ℝ}
+    (hlam : 0 < lam)
+    (hA : ∀ ξ : EuclideanSpace ℝ n, lam * ‖ξ‖ ^ 2 ≤ A.toQuadraticForm' ξ) :
+    IsCoercive (matrixBilinearForm A) := by
+  refine ⟨lam, hlam, fun ξ => ?_⟩
+  rw [matrixBilinearForm_self]
+  simpa [sq, pow_two, mul_assoc] using hA ξ
+
+/-- The identity matrix bilinear form is coercive with constant `1`. -/
+lemma isCoercive_matrixBilinearForm_one :
+    IsCoercive (matrixBilinearForm (1 : Matrix n n ℝ)) := by
+  refine isCoercive_matrixBilinearForm_of_lower_bound (1 : Matrix n n ℝ) zero_lt_one ?_
+  intro ξ
+  simp
 
 /-- Uniform ellipticity and boundedness with explicit constants on a domain.
 
@@ -148,6 +212,22 @@ lemma of_bounds (hlam : 0 < lam) (hlamLam : lam ≤ Lam)
       |η ⬝ᵥ (a x *ᵥ ξ)| ≤ Lam * ‖η‖ * ‖ξ‖) :
     UniformlyEllipticOn Ω a lam Lam :=
   ⟨hlam, hlamLam, fun {_} hx => ⟨hbounds hx, hupper hx⟩⟩
+
+/-- At every point of the domain, uniform ellipticity gives a norm bound for the attached
+matrix bilinear form. -/
+@[grind =>]
+lemma norm_point_matrixBilinearForm_le (h : UniformlyEllipticOn Ω a lam Lam) {x : X}
+    (hx : x ∈ Ω) (η ξ : EuclideanSpace ℝ n) :
+    ‖matrixBilinearForm (a x) η ξ‖ ≤ Lam * ‖η‖ * ‖ξ‖ :=
+  norm_matrixBilinearForm_le_of_upper_bound (a x) (h.upper_bound hx) η ξ
+
+/-- At every point of the domain, uniform ellipticity gives coercivity of the attached matrix
+bilinear form. -/
+@[grind =>]
+lemma isCoercive_matrixBilinearForm (h : UniformlyEllipticOn Ω a lam Lam) {x : X}
+    (hx : x ∈ Ω) :
+    IsCoercive (matrixBilinearForm (a x)) :=
+  isCoercive_matrixBilinearForm_of_lower_bound (a x) h.pos (h.lower_bound hx)
 
 end UniformlyEllipticOn
 
