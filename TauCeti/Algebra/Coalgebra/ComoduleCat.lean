@@ -2,20 +2,20 @@
 Copyright (c) 2026 The Tau Ceti contributors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
-import Mathlib.Algebra.Category.ModuleCat.Basic
+import Mathlib.Algebra.Category.ModuleCat.Semi
 import TauCeti.Algebra.Coalgebra.Comodule
 
 /-!
 # The category of comodules over a coalgebra
 
 This file bundles the right comodules defined in `TauCeti.Algebra.Coalgebra.Comodule` into a
-category. For a fixed coalgebra `C` over a commutative ring `R`, objects are `R`-modules with
-a right `C`-coaction and morphisms are the comodule morphisms already defined by
-`Comodule.Hom`.
+category. For a fixed coalgebra `C` over a commutative semiring `R`, objects are
+`R`-semimodules with a right `C`-coaction and morphisms are the comodule morphisms already
+defined by `Comodule.Hom`.
 
 The reductive-groups roadmap asks for the category of finite-dimensional comodules over a
 Hopf algebra as the representation category of an affine group scheme. This file supplies the
-underlying bundled category and its forgetful functor to `ModuleCat`; finiteness, tensor
+underlying bundled category and its forgetful functor to `SemimoduleCat`; finiteness, tensor
 products, duals, and the Hopf-algebra specialization can be added on top.
 
 ## Main definitions
@@ -23,7 +23,7 @@ products, duals, and the Hopf-algebra specialization can be added on top.
 * `TauCeti.ComoduleCat`: bundled right comodules over a fixed coalgebra.
 * `TauCeti.ComoduleCat.of`: build a bundled comodule from an unbundled one.
 * `TauCeti.ComoduleCat.ofHom`: view an unbundled comodule morphism as a categorical morphism.
-* `forget₂ (ComoduleCat R C) (ModuleCat R)`: the forgetful functor to modules.
+* `forget₂ (ComoduleCat R C) (SemimoduleCat R)`: the forgetful functor to semimodules.
 
 ## References
 
@@ -39,11 +39,11 @@ namespace TauCeti
 
 universe u v w
 
-variable (R : Type u) [CommRing R]
+variable (R : Type u) [CommSemiring R]
 variable (C : Type v) [AddCommMonoid C] [Module R C] [Coalgebra R C]
 
 /-- The category of right comodules over a fixed `R`-coalgebra `C`. -/
-structure ComoduleCat extends ModuleCat.{w} R where
+structure ComoduleCat extends SemimoduleCat.{w} R where
   /-- The right `C`-comodule structure on the underlying module. -/
   instComodule : Comodule R C carrier
 
@@ -52,23 +52,23 @@ attribute [instance] ComoduleCat.instComodule
 namespace ComoduleCat
 
 instance : CoeSort (ComoduleCat.{u, v, w} R C) (Type w) :=
-  ⟨fun M => M.toModuleCat⟩
+  ⟨fun M => M.toSemimoduleCat⟩
 
-instance (M : ComoduleCat.{u, v, w} R C) : AddCommGroup M :=
-  M.isAddCommGroup
+instance (M : ComoduleCat.{u, v, w} R C) : AddCommMonoid M :=
+  M.isAddCommMonoid
 
 instance (M : ComoduleCat.{u, v, w} R C) : Module R M :=
   M.isModule
 
 /-- Build a bundled comodule from a type carrying the usual unbundled typeclasses. -/
-abbrev of (M : Type w) [AddCommGroup M] [Module R M] [Comodule R C M] :
+abbrev of (M : Type w) [AddCommMonoid M] [Module R M] [Comodule R C M] :
     ComoduleCat.{u, v, w} R C where
   carrier := M
   instComodule := inferInstance
 
 /-- The coaction on `ComoduleCat.of` is the original unbundled coaction. -/
 @[simp]
-theorem of_coact {M : Type w} [AddCommGroup M] [Module R M] [Comodule R C M] :
+theorem of_coact {M : Type w} [AddCommMonoid M] [Module R M] [Comodule R C M] :
     Comodule.coact (R := R) (C := C) (M := of R C M) =
       Comodule.coact (R := R) (C := C) (M := M) :=
   rfl
@@ -95,15 +95,15 @@ abbrev hom {M N : ComoduleCat.{u, v, w} R C} (f : M ⟶ N) :
   f
 
 /-- Typecheck an unbundled comodule morphism as a morphism in `ComoduleCat`. -/
-abbrev ofHom {M N : Type w} [AddCommGroup M] [Module R M] [Comodule R C M]
-    [AddCommGroup N] [Module R N] [Comodule R C N] (f : Comodule.Hom R C M N) :
+abbrev ofHom {M N : Type w} [AddCommMonoid M] [Module R M] [Comodule R C M]
+    [AddCommMonoid N] [Module R N] [Comodule R C N] (f : Comodule.Hom R C M N) :
     of R C M ⟶ of R C N :=
   f
 
 /-- Turning an unbundled comodule morphism into a categorical morphism and back is the identity. -/
 @[simp]
-theorem hom_ofHom {M N : Type w} [AddCommGroup M] [Module R M] [Comodule R C M]
-    [AddCommGroup N] [Module R N] [Comodule R C N] (f : Comodule.Hom R C M N) :
+theorem hom_ofHom {M N : Type w} [AddCommMonoid M] [Module R M] [Comodule R C M]
+    [AddCommMonoid N] [Module R N] [Comodule R C N] (f : Comodule.Hom R C M N) :
     ConcreteCategory.hom (C := ComoduleCat R C) (ofHom (R := R) (C := C) f) = f :=
   rfl
 
@@ -115,15 +115,15 @@ theorem ofHom_hom {M N : ComoduleCat.{u, v, w} R C} (f : M ⟶ N) :
 
 /-- The categorical identity is the bundled form of the identity comodule morphism. -/
 @[simp]
-theorem ofHom_id {M : Type w} [AddCommGroup M] [Module R M] [Comodule R C M] :
+theorem ofHom_id {M : Type w} [AddCommMonoid M] [Module R M] [Comodule R C M] :
     ofHom (R := R) (C := C) (Comodule.Hom.id R C M) = 𝟙 (of R C M) :=
   rfl
 
 /-- Categorical composition is the bundled form of composition of comodule morphisms. -/
 @[simp]
-theorem ofHom_comp {M N P : Type w} [AddCommGroup M] [Module R M] [Comodule R C M]
-    [AddCommGroup N] [Module R N] [Comodule R C N]
-    [AddCommGroup P] [Module R P] [Comodule R C P] (f : Comodule.Hom R C M N)
+theorem ofHom_comp {M N P : Type w} [AddCommMonoid M] [Module R M] [Comodule R C M]
+    [AddCommMonoid N] [Module R N] [Comodule R C N]
+    [AddCommMonoid P] [Module R P] [Comodule R C P] (f : Comodule.Hom R C M N)
     (g : Comodule.Hom R C N P) :
     ofHom (R := R) (C := C) (Comodule.Hom.comp g f) =
       ofHom (R := R) (C := C) f ≫ ofHom (R := R) (C := C) g :=
@@ -131,8 +131,8 @@ theorem ofHom_comp {M N P : Type w} [AddCommGroup M] [Module R M] [Comodule R C 
 
 /-- The bundled form of a comodule morphism applies as the original morphism. -/
 @[simp]
-theorem ofHom_apply {M N : Type w} [AddCommGroup M] [Module R M] [Comodule R C M]
-    [AddCommGroup N] [Module R N] [Comodule R C N] (f : Comodule.Hom R C M N) (m : M) :
+theorem ofHom_apply {M N : Type w} [AddCommMonoid M] [Module R M] [Comodule R C M]
+    [AddCommMonoid N] [Module R N] [Comodule R C N] (f : Comodule.Hom R C M N) (m : M) :
     ofHom (R := R) (C := C) f m = f m :=
   rfl
 
@@ -171,23 +171,24 @@ theorem comp_apply {M N P : ComoduleCat.{u, v, w} R C} (f : M ⟶ N) (g : N ⟶ 
     (f ≫ g) m = g (f m) :=
   rfl
 
-/-- The forgetful functor from comodules to their underlying modules. -/
-instance hasForgetToModule : HasForget₂ (ComoduleCat.{u, v, w} R C) (ModuleCat.{w} R) where
+/-- The forgetful functor from comodules to their underlying semimodules. -/
+instance hasForgetToSemimodule : HasForget₂ (ComoduleCat.{u, v, w} R C) (SemimoduleCat.{w} R) where
   forget₂ :=
-    { obj M := ModuleCat.of R M
-      map f := ModuleCat.ofHom f.toLinearMap }
+    { obj M := SemimoduleCat.of R M
+      map f := SemimoduleCat.ofHom f.toLinearMap }
 
-/-- The forgetful functor sends a comodule to its underlying module. -/
+/-- The forgetful functor sends a comodule to its underlying semimodule. -/
 @[simp]
 theorem forget₂_obj (M : ComoduleCat.{u, v, w} R C) :
-    (forget₂ (ComoduleCat.{u, v, w} R C) (ModuleCat.{w} R)).obj M = ModuleCat.of R M :=
+    (forget₂ (ComoduleCat.{u, v, w} R C) (SemimoduleCat.{w} R)).obj M =
+      SemimoduleCat.of R M :=
   rfl
 
 /-- The forgetful functor sends a comodule morphism to its underlying linear map. -/
 @[simp]
 theorem forget₂_map {M N : ComoduleCat.{u, v, w} R C} (f : M ⟶ N) :
-    (forget₂ (ComoduleCat.{u, v, w} R C) (ModuleCat.{w} R)).map f =
-      ModuleCat.ofHom f.toLinearMap :=
+    (forget₂ (ComoduleCat.{u, v, w} R C) (SemimoduleCat.{w} R)).map f =
+      SemimoduleCat.ofHom f.toLinearMap :=
   rfl
 
 end ComoduleCat
