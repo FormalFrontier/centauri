@@ -55,23 +55,30 @@ lemma orbitQuotientToBase_mk (e : E) :
       p e :=
   rfl
 
+/-- If deck orbits are exactly fibres of `p`, the deck-orbit relation is the kernel relation
+of `p`. -/
+private lemma orbitRel_eq_ker_of_exists_apply_eq
+    (hpoint : ∀ {e e' : E}, p e = p e' → ∃ φ : Deck p, φ.1 e = e') :
+    MulAction.orbitRel (Deck p) E = Setoid.ker p := by
+  ext e e'
+  constructor
+  · exact eq_proj_of_orbitRel
+  · intro heq
+    rcases hpoint heq with ⟨φ, hφ⟩
+    exact ⟨φ⁻¹, by
+      have hinv : φ.1.symm e' = e := by
+        rw [← hφ, Homeomorph.symm_apply_apply]
+      simpa [smul_eq_apply] using hinv⟩
+
 /-- If deck orbits are exactly fibres of `p`, the orbit quotient map to the base is
 injective. -/
 lemma orbitQuotientToBase_injective_of_exists_apply_eq
     (hpoint : ∀ {e e' : E}, p e = p e' → ∃ φ : Deck p, φ.1 e = e') :
     Function.Injective (orbitQuotientToBase p) := by
-  intro x y hxy
-  induction x using Quotient.inductionOn' with
-  | h e =>
-      induction y using Quotient.inductionOn' with
-      | h e' =>
-          simp only [orbitQuotientToBase_mk] at hxy
-          rcases hpoint hxy with ⟨φ, hφ⟩
-          exact Quotient.sound
-            ⟨φ⁻¹, by
-              have hinv : φ.1.symm e' = e := by
-                rw [← hφ, Homeomorph.symm_apply_apply]
-              simpa [smul_eq_apply] using hinv⟩
+  exact (Setoid.lift_injective_iff_ker_eq_of_le
+    (r := MulAction.orbitRel (Deck p) E) (f := p)
+    (fun _ _ h => eq_proj_of_orbitRel h)).mpr
+      (orbitRel_eq_ker_of_exists_apply_eq hpoint).symm
 
 /-- An over-base homeomorphism preserves the corresponding deck-orbit relations. -/
 private lemma orbitRel_homeomorph_iff (h : E ≃ₜ F) (hpq : ∀ e, q (h e) = p e) (e e' : E) :
