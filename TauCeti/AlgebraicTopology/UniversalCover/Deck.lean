@@ -27,18 +27,6 @@ Stage 0.4, and the shape of the construction in Kim Morrison's mathlib4#40135.
 
 namespace TauCeti
 
-variable {G α : Type*} [Group G] [MulAction G α]
-
-/-- If two group elements send a point to the same point, then `h⁻¹ * g` stabilizes that
-point. -/
-lemma inv_mul_mem_stabilizer_of_smul_eq {x : α} {g h : G} (hgh : g • x = h • x) :
-    h⁻¹ * g ∈ MulAction.stabilizer G x := by
-  rw [MulAction.mem_stabilizer_iff]
-  calc
-    (h⁻¹ * g) • x = h⁻¹ • g • x := by rw [mul_smul]
-    _ = h⁻¹ • h • x := by rw [hgh]
-    _ = x := by rw [inv_smul_smul]
-
 variable {E B : Type*} [TopologicalSpace E] (p : E → B)
 
 /-- The deck transformations of a map `p : E → B`, as the subgroup of homeomorphisms of `E`
@@ -140,19 +128,25 @@ lemma fiberHomeomorphMonoidHom_apply (b : B) (φ : Deck p) :
     fiberHomeomorphMonoidHom b φ = fiberHomeomorph φ b :=
   rfl
 
+/-- The identity deck transformation restricts to the identity on each fibre, pointwise. -/
+lemma fiberHomeomorph_one_apply (b : B) (e : p ⁻¹' {b}) :
+    fiberHomeomorph (1 : Deck p) b e = e := by
+  apply Subtype.ext
+  simp only [fiberHomeomorph_apply, OneMemClass.coe_one, Homeomorph.one_apply]
+
+/-- Restricting a product of deck transformations to a fibre agrees pointwise with the product
+of the restricted transformations. -/
+lemma fiberHomeomorph_mul_apply (φ ψ : Deck p) (b : B) (e : p ⁻¹' {b}) :
+    fiberHomeomorph (φ * ψ) b e = fiberHomeomorph φ b (fiberHomeomorph ψ b e) := by
+  apply Subtype.ext
+  simp only [fiberHomeomorph_apply, Subgroup.coe_mul, Homeomorph.mul_apply]
+
 /-- A fixed fibre of `p` carries the action of `Deck p` induced by restriction of deck
 transformations. -/
 instance fiberMulAction (b : B) : MulAction (Deck p) (p ⁻¹' {b}) where
   smul φ e := fiberHomeomorph φ b e
-  one_smul e := by
-    apply Subtype.ext
-    change ((fiberHomeomorph (1 : Deck p) b e : p ⁻¹' {b}) : E) = e.1
-    simp only [fiberHomeomorph_apply, OneMemClass.coe_one, Homeomorph.one_apply]
-  mul_smul φ ψ e := by
-    apply Subtype.ext
-    change ((fiberHomeomorph (φ * ψ) b e : p ⁻¹' {b}) : E) =
-      ((fiberHomeomorph φ b (fiberHomeomorph ψ b e) : p ⁻¹' {b}) : E)
-    simp only [fiberHomeomorph_apply, Subgroup.coe_mul, Homeomorph.mul_apply]
+  one_smul e := fiberHomeomorph_one_apply b e
+  mul_smul φ ψ e := fiberHomeomorph_mul_apply φ ψ b e
 
 /-- The action of a deck transformation on a point in a fibre is just evaluation of the
 underlying homeomorphism. -/
