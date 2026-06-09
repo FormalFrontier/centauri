@@ -2,6 +2,7 @@
 Copyright (c) 2026 The Tau Ceti contributors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
+import Mathlib.GroupTheory.GroupAction.Basic
 import Mathlib.Topology.Covering.Basic
 import TauCeti.AlgebraicTopology.UniversalCover.Deck.Fiber
 
@@ -47,6 +48,13 @@ theorem eq_of_smul_eq_smul [PreconnectedSpace E] (hp : IsCoveringMap p) (φ ψ :
 theorem isCancelSMul [PreconnectedSpace E] (hp : IsCoveringMap p) : IsCancelSMul (Deck p) E where
   right_cancel' φ ψ _ h := eq_of_smul_eq_smul hp φ ψ h
 
+/-- The stabilizer of any point under the deck action of a preconnected covering is trivial. -/
+@[simp]
+theorem stabilizer_eq_bot [PreconnectedSpace E] (hp : IsCoveringMap p) (e : E) :
+    MulAction.stabilizer (Deck p) e = ⊥ := by
+  haveI := isCancelSMul hp
+  exact IsCancelSMul.stabilizer_eq_bot e
+
 section Fiber
 
 variable {b : B}
@@ -54,8 +62,10 @@ variable {b : B}
 /-- A deck transformation of a preconnected covering is determined by its action on one point of
 a chosen fibre. -/
 theorem eq_of_fiber_smul_eq_fiber_smul [PreconnectedSpace E] (hp : IsCoveringMap p)
-    (φ ψ : Deck p) {e : p ⁻¹' {b}} (h : φ • e = ψ • e) : φ = ψ :=
-  eq_of_apply_eq hp φ ψ (Subtype.ext_iff.mp h)
+    (φ ψ : Deck p) {e : p ⁻¹' {b}} (h : φ • e = ψ • e) : φ = ψ := by
+  have hcoe : (φ • e : E) = (ψ • e : E) := congrArg Subtype.val h
+  rw [fiber_smul_coe, fiber_smul_coe] at hcoe
+  exact eq_of_apply_eq hp φ ψ hcoe
 
 /-- A deck transformation of a preconnected covering is determined by the value of its
 restricted fibre homeomorphism at one point. -/
@@ -68,6 +78,14 @@ theorem eq_of_fiberHomeomorph_apply_eq [PreconnectedSpace E] (hp : IsCoveringMap
 theorem fiber_isCancelSMul [PreconnectedSpace E] (hp : IsCoveringMap p) :
     IsCancelSMul (Deck p) (p ⁻¹' {b}) where
   right_cancel' φ ψ _ h := eq_of_fiber_smul_eq_fiber_smul hp φ ψ h
+
+/-- The stabilizer of any fibre point under the restricted deck action of a preconnected
+covering is trivial. -/
+@[simp]
+theorem fiber_stabilizer_eq_bot [PreconnectedSpace E] (hp : IsCoveringMap p) (e : p ⁻¹' {b}) :
+    MulAction.stabilizer (Deck p) e = ⊥ := by
+  haveI := fiber_isCancelSMul (b := b) hp
+  exact IsCancelSMul.stabilizer_eq_bot e
 
 /-- For a nonempty fibre of a preconnected covering, restricting deck transformations to that
 fibre is injective. -/
