@@ -57,20 +57,21 @@ private theorem assoc_rTensor_corestrictCoact (f : C →ₗc[R] D) (t : M ⊗[R]
       TensorProduct.map LinearMap.id (TensorProduct.map f.toLinearMap f.toLinearMap)
         (TensorProduct.assoc R M C C
           ((coact (R := R) (C := C) (M := M)).rTensor C t)) := by
-  induction t using TensorProduct.induction_on with
-  | zero => simp [corestrictCoact]
-  | tmul m c =>
-      simp only [corestrictCoact, LinearMap.rTensor_tmul, TensorProduct.map_tmul,
-        LinearMap.id_coe, id_eq, LinearMap.coe_comp, Function.comp_apply]
-      generalize hz : coact (R := R) (C := C) (M := M) m = z
-      clear hz
-      induction z using TensorProduct.induction_on with
-      | zero => simp
-      | tmul m' c' => simp
-      | add x y hx hy =>
-          simpa only [map_add, TensorProduct.add_tmul] using congrArg₂ (· + ·) hx hy
-  | add x y hx hy =>
-      simpa [corestrictCoact] using congrArg₂ (· + ·) hx hy
+  calc
+    TensorProduct.assoc R M D D
+        ((corestrictCoact (R := R) (C := C) (D := D) (M := M) f).rTensor D
+          (TensorProduct.map LinearMap.id f.toLinearMap t))
+      =
+        TensorProduct.assoc R M D D
+          (TensorProduct.map (TensorProduct.map LinearMap.id f.toLinearMap) f.toLinearMap
+            ((coact (R := R) (C := C) (M := M)).rTensor C t)) := by
+          simp [corestrictCoact, LinearMap.rTensor, TensorProduct.map_map]
+    _ =
+        TensorProduct.map LinearMap.id (TensorProduct.map f.toLinearMap f.toLinearMap)
+          (TensorProduct.assoc R M C C
+            ((coact (R := R) (C := C) (M := M)).rTensor C t)) := by
+          exact (TensorProduct.map_map_assoc LinearMap.id f.toLinearMap f.toLinearMap
+            ((coact (R := R) (C := C) (M := M)).rTensor C t)).symm
 
 omit [Comodule R C M] in
 private theorem comul_lTensor_corestrict_map (f : C →ₗc[R] D) (t : M ⊗[R] C) :
