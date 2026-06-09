@@ -37,12 +37,6 @@ theorem eq_of_apply_eq [PreconnectedSpace E] (hp : IsCoveringMap p) (φ ψ : Dec
         rw [Function.comp_apply, Function.comp_apply, map_proj φ x, map_proj ψ x])
       e h)
 
-/-- On a covering map with preconnected total space, a deck transformation fixing one point is
-the identity. -/
-theorem eq_one_of_apply_eq_self [PreconnectedSpace E] (hp : IsCoveringMap p) (φ : Deck p) {e : E}
-    (h : φ.1 e = e) : φ = 1 :=
-  eq_of_apply_eq hp φ 1 (by simpa using h)
-
 /-- On a covering map with preconnected total space, equality of the ambient deck action at one
 point determines the deck transformation. -/
 theorem eq_of_smul_eq_smul [PreconnectedSpace E] (hp : IsCoveringMap p) (φ ψ : Deck p) {e : E}
