@@ -124,10 +124,6 @@ instance hasForgetToCommBialgCat :
     { obj H := CommBialgCat.of R H
       map φ := CommBialgCat.ofHom (toBialgHom φ) }
 
-instance hasForgetToHopfAlgCat :
-    HasForget₂ (CommHopfAlgCat.{u, v} R) (_root_.HopfAlgCat.{v} R) where
-  forget₂ := (commHopfAlgProperty (R := R)).ι
-
 @[simp]
 lemma forget₂_commBialgCat_obj (H : CommHopfAlgCat.{u, v} R) :
     (forget₂ (CommHopfAlgCat.{u, v} R) (CommBialgCat.{v} R)).obj H =
