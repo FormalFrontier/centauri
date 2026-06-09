@@ -148,13 +148,13 @@ theorem hom_ext {M N : ComoduleCat.{u, v, w} R C} {f g : M ⟶ N}
 
 /-- The identity morphism has the identity linear map underneath. -/
 @[simp]
-theorem hom_id (M : ComoduleCat.{u, v, w} R C) :
+theorem toLinearMap_id (M : ComoduleCat.{u, v, w} R C) :
     (𝟙 M : M ⟶ M).toLinearMap = LinearMap.id :=
   rfl
 
 /-- Composition in `ComoduleCat` is composition of the underlying linear maps. -/
 @[simp]
-theorem hom_comp {M N P : ComoduleCat.{u, v, w} R C} (f : M ⟶ N) (g : N ⟶ P) :
+theorem toLinearMap_comp {M N P : ComoduleCat.{u, v, w} R C} (f : M ⟶ N) (g : N ⟶ P) :
     (f ≫ g).toLinearMap = g.toLinearMap.comp f.toLinearMap :=
   rfl
 
