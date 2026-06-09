@@ -3,7 +3,7 @@ Copyright (c) 2026 The Tau Ceti contributors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
 import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.Analysis.InnerProductSpace.LaxMilgram
+import Mathlib.Analysis.Normed.Operator.NormedSpace
 import Mathlib.LinearAlgebra.Matrix.BilinearForm
 import Mathlib.LinearAlgebra.QuadraticForm.Basic
 import Mathlib.Topology.Algebra.Module.FiniteDimensionBilinear
@@ -35,8 +35,8 @@ and Lax--Milgram arguments: constants are parameters, not hidden existential dat
   predicate.
 * `TauCeti.PDE.matrixBilinearForm`: the bounded bilinear form `η, ξ ↦ ηᵀ A ξ` attached to
   a coefficient matrix.
-* `TauCeti.PDE.UniformlyEllipticOn.point_isCoercive`: pointwise coercivity of the bilinear
-  form attached to a uniformly elliptic coefficient field.
+* `TauCeti.PDE.UniformlyEllipticOn.isCoercive_matrixBilinearForm`: pointwise coercivity of
+  the bilinear form attached to a uniformly elliptic coefficient field.
 
 The vectors are `EuclideanSpace ℝ n`, matching the roadmap's bounded open subsets of
 `ℝⁿ`; this type is reducibly a finite `L²` product, so Mathlib's matrix-vector API applies
@@ -65,20 +65,6 @@ lemma toQuadraticForm'_one (ξ : EuclideanSpace ℝ n) :
   simpa [dotProduct, sq] using (EuclideanSpace.real_norm_sq_eq ξ).symm
 
 omit [DecidableEq n] in
-/-- The dot-product expression `ηᵀ A ξ` is bilinear on Euclidean space. -/
-private lemma isBilinearMap_dotProduct_mulVec (A : Matrix n n ℝ) :
-    IsBilinearMap ℝ (fun η ξ : EuclideanSpace ℝ n => η ⬝ᵥ (A *ᵥ ξ)) := by
-  refine IsBilinearMap.mk ?_ ?_ ?_ ?_
-  · intro η₁ η₂ ξ
-    simp [add_dotProduct]
-  · intro c η ξ
-    simp [smul_dotProduct]
-  · intro η ξ₁ ξ₂
-    simp [Matrix.mulVec_add, dotProduct_add]
-  · intro c η ξ
-    simp [Matrix.mulVec_smul, dotProduct_smul]
-
-omit [DecidableEq n] in
 /-- The continuous bilinear form attached to a real matrix on Euclidean space.
 
 For a coefficient matrix `A`, this is the pointwise weak-form integrand
@@ -87,27 +73,29 @@ Mathlib's bounded-bilinear-form and Lax--Milgram APIs once the corresponding Sob
 are available. -/
 noncomputable def matrixBilinearForm (A : Matrix n n ℝ) :
     EuclideanSpace ℝ n →L[ℝ] EuclideanSpace ℝ n →L[ℝ] ℝ :=
-  (isBilinearMap_dotProduct_mulVec A).toContinuousBilinearMap
+  (A.toBilin'.comp (EuclideanSpace.equiv n ℝ).toLinearMap
+    (EuclideanSpace.equiv n ℝ).toLinearMap).toContinuousBilinearMap
 
-omit [DecidableEq n] in
 /-- The matrix bilinear form is the dot-product expression `ηᵀ A ξ`. -/
 @[simp]
 lemma matrixBilinearForm_apply (A : Matrix n n ℝ) (η ξ : EuclideanSpace ℝ n) :
     matrixBilinearForm A η ξ = η ⬝ᵥ (A *ᵥ ξ) := by
-  simp [matrixBilinearForm]
+  rw [matrixBilinearForm, LinearMap.toContinuousBilinearMap_apply,
+    LinearMap.BilinForm.comp_apply, Matrix.toBilin'_apply']
+  rfl
 
 /-- The matrix bilinear form associated to the identity matrix is the Euclidean dot product. -/
 @[simp]
 lemma matrixBilinearForm_one_apply (η ξ : EuclideanSpace ℝ n) :
     matrixBilinearForm (1 : Matrix n n ℝ) η ξ = η ⬝ᵥ ξ := by
-  simp
+  rw [matrixBilinearForm_apply, one_mulVec]
 
 /-- The quadratic part of the matrix bilinear form is the matrix quadratic form. -/
+@[simp]
 lemma matrixBilinearForm_self (A : Matrix n n ℝ) (ξ : EuclideanSpace ℝ n) :
     matrixBilinearForm A ξ ξ = A.toQuadraticForm' ξ := by
   rw [matrixBilinearForm_apply, toQuadraticForm'_eq_dotProduct]
 
-omit [DecidableEq n] in
 /-- A pointwise bilinear upper bound gives the corresponding norm estimate for the bundled
 continuous bilinear form. -/
 lemma norm_matrixBilinearForm_le_of_upper_bound (A : Matrix n n ℝ) {Lam : ℝ}
@@ -234,7 +222,8 @@ lemma norm_point_matrixBilinearForm_le (h : UniformlyEllipticOn Ω a lam Lam) {x
 
 /-- At every point of the domain, uniform ellipticity gives coercivity of the attached
 matrix bilinear form with coercivity constant `λ`. -/
-lemma point_isCoercive (h : UniformlyEllipticOn Ω a lam Lam) {x : X} (hx : x ∈ Ω) :
+lemma isCoercive_matrixBilinearForm (h : UniformlyEllipticOn Ω a lam Lam) {x : X}
+    (hx : x ∈ Ω) :
     IsCoercive (matrixBilinearForm (a x)) :=
   matrixBilinearForm_isCoercive_of_lower_bound (a x) h.pos (h.lower_bound hx)
 
