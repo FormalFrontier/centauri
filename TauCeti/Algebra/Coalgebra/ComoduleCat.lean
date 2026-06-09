@@ -3,7 +3,7 @@ Copyright (c) 2026 The Tau Ceti contributors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
 import Mathlib.Algebra.Category.ModuleCat.Semi
-import TauCeti.Algebra.Coalgebra.Comodule
+import TauCeti.Algebra.Coalgebra.Comodule.Hom
 
 /-!
 # The category of comodules over a coalgebra
