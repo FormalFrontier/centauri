@@ -226,6 +226,15 @@ theorem groupLikeTensor_coact_apply (g h : GroupLike R C) (t : M ⊗[R] N) :
       t ⊗ₜ[R] ((g * h : GroupLike R C) : C) :=
   rfl
 
+/-- The tensor product group-like coaction is the map `t ↦ t ⊗ (g * h)`. -/
+@[simp]
+theorem groupLikeTensor_coact (g h : GroupLike R C) :
+    letI : Comodule R C (M ⊗[R] N) :=
+      groupLikeTensor (R := R) (C := C) (M := M) (N := N) g h
+    coact (R := R) (C := C) (M := M ⊗[R] N) =
+      (TensorProduct.mk R (M ⊗[R] N) C).flip ((g * h : GroupLike R C) : C) :=
+  rfl
+
 /-- Pointwise form of the tensor product group-like coaction on pure tensors. -/
 @[simp]
 theorem groupLikeTensor_coact_tmul (g h : GroupLike R C) (m : M) (n : N) :
@@ -389,6 +398,15 @@ theorem trivialTensor_coact_apply (t : M ⊗[R] N) :
     letI : Comodule R C (M ⊗[R] N) :=
       trivialTensor (R := R) (C := C) (M := M) (N := N)
     coact (R := R) (C := C) (M := M ⊗[R] N) t = t ⊗ₜ[R] (1 : C) :=
+  rfl
+
+/-- The tensor product trivial coaction is the map `t ↦ t ⊗ 1`. -/
+@[simp]
+theorem trivialTensor_coact :
+    letI : Comodule R C (M ⊗[R] N) :=
+      trivialTensor (R := R) (C := C) (M := M) (N := N)
+    coact (R := R) (C := C) (M := M ⊗[R] N) =
+      (TensorProduct.mk R (M ⊗[R] N) C).flip (1 : C) :=
   rfl
 
 /-- Pointwise form of the tensor product trivial coaction on pure tensors. -/
