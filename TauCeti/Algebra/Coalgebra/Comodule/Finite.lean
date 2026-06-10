@@ -27,10 +27,6 @@ reconstruction should be built on this full subcategory rather than on all comod
 * `TauCeti.FGComoduleCat.of`: build a finitely generated bundled comodule from unbundled data.
 * `TauCeti.FGComoduleCat.ofHom`: lift an unbundled comodule morphism between finitely generated
   comodules.
-* `TauCeti.FGComoduleCat.isoToLinearEquiv`: the underlying linear equivalence of an
-  isomorphism of finitely generated comodules.
-* `TauCeti.FGComoduleCat.isoOfLinearEquiv`: build an isomorphism of finitely generated comodules
-  from a coaction-compatible linear equivalence.
 * `TauCeti.FGComoduleCat.isZero_zero`: `FGComoduleCat.zero` is a zero object.
 * `HasZeroObject (FGComoduleCat R C)`.
 
@@ -119,19 +115,6 @@ instance hasForgetToSemimoduleCat :
   HasForget₂.trans (FGComoduleCat.{u, v, w} R C) (ComoduleCat.{u, v, w} R C)
     (SemimoduleCat.{w} R)
 
-/-- Forgetting a finitely generated comodule to `ComoduleCat` gives its ambient object. -/
-@[simp]
-theorem forget₂_comoduleCat_obj (M : FGComoduleCat.{u, v, w} R C) :
-    (forget₂ (FGComoduleCat.{u, v, w} R C) (ComoduleCat.{u, v, w} R C)).obj M = M.obj :=
-  rfl
-
-/-- Forgetting a finitely generated comodule morphism to `ComoduleCat` gives its ambient
-comodule morphism. -/
-@[simp]
-theorem forget₂_comoduleCat_map {M N : FGComoduleCat.{u, v, w} R C} (f : M ⟶ N) :
-    (forget₂ (FGComoduleCat.{u, v, w} R C) (ComoduleCat.{u, v, w} R C)).map f = f.hom :=
-  rfl
-
 /-- Forgetting a finitely generated comodule to semimodules agrees with forgetting its ambient
 comodule. -/
 @[simp]
@@ -211,133 +194,6 @@ theorem ofHom_apply {M N : Type w} [AddCommMonoid M] [Module R M] [Comodule R C 
     [Module.Finite R N] (f : Comodule.Hom R C M N) (m : M) :
     ofHom (R := R) (C := C) f m = f m :=
   rfl
-
-/-- A categorical isomorphism of finitely generated comodules induces the underlying linear
-equivalence. -/
-def isoToLinearEquiv {M N : FGComoduleCat.{u, v, w} R C} (i : M ≅ N) : M ≃ₗ[R] N :=
-  ComoduleCat.isoToLinearEquiv (R := R) (C := C) ((incl (R := R) (C := C)).mapIso i)
-
-/-- The linear equivalence induced by an isomorphism of finitely generated comodules has the
-isomorphism's forward morphism underneath. -/
-@[simp]
-theorem isoToLinearEquiv_toLinearMap {M N : FGComoduleCat.{u, v, w} R C} (i : M ≅ N) :
-    (isoToLinearEquiv (R := R) (C := C) i).toLinearMap = i.hom.hom.toLinearMap :=
-  rfl
-
-/-- The inverse of the linear equivalence induced by an isomorphism of finitely generated
-comodules has the isomorphism's inverse morphism underneath. -/
-@[simp]
-theorem isoToLinearEquiv_symm_toLinearMap {M N : FGComoduleCat.{u, v, w} R C} (i : M ≅ N) :
-    (isoToLinearEquiv (R := R) (C := C) i).symm.toLinearMap = i.inv.hom.toLinearMap :=
-  rfl
-
-/-- The linear equivalence induced by an isomorphism of finitely generated comodules applies
-as the forward morphism. -/
-@[simp]
-theorem isoToLinearEquiv_apply {M N : FGComoduleCat.{u, v, w} R C} (i : M ≅ N) (m : M) :
-    isoToLinearEquiv (R := R) (C := C) i m = i.hom m :=
-  rfl
-
-/-- The inverse linear equivalence induced by an isomorphism of finitely generated comodules
-applies as the inverse morphism. -/
-@[simp]
-theorem isoToLinearEquiv_symm_apply {M N : FGComoduleCat.{u, v, w} R C} (i : M ≅ N)
-    (n : N) :
-    (isoToLinearEquiv (R := R) (C := C) i).symm n = i.inv n :=
-  rfl
-
-/-- The linear equivalence induced by the identity finitely generated comodule isomorphism is
-the identity. -/
-@[simp]
-theorem isoToLinearEquiv_refl (M : FGComoduleCat.{u, v, w} R C) :
-    isoToLinearEquiv (R := R) (C := C) (Iso.refl M) = LinearEquiv.refl R M := by
-  ext m
-  rfl
-
-/-- The linear equivalence induced by the inverse finitely generated comodule isomorphism is
-the inverse linear equivalence. -/
-@[simp]
-theorem isoToLinearEquiv_symm {M N : FGComoduleCat.{u, v, w} R C} (i : M ≅ N) :
-    isoToLinearEquiv (R := R) (C := C) i.symm =
-      (isoToLinearEquiv (R := R) (C := C) i).symm := by
-  ext n
-  rfl
-
-/-- The linear equivalence induced by a composite finitely generated comodule isomorphism is
-the composite of the induced linear equivalences. -/
-@[simp]
-theorem isoToLinearEquiv_trans {M N P : FGComoduleCat.{u, v, w} R C} (i : M ≅ N)
-    (j : N ≅ P) :
-    isoToLinearEquiv (R := R) (C := C) (i ≪≫ j) =
-      (isoToLinearEquiv (R := R) (C := C) i).trans
-        (isoToLinearEquiv (R := R) (C := C) j) := by
-  ext m
-  rfl
-
-/-- Build an isomorphism of finitely generated comodules from a linear equivalence whose
-forward map respects the coactions. -/
-def isoOfLinearEquiv {M N : FGComoduleCat.{u, v, w} R C} (e : M ≃ₗ[R] N)
-    (h : TensorProduct.map e.toLinearMap LinearMap.id ∘ₗ
-        Comodule.coact (R := R) (C := C) (M := M) =
-      Comodule.coact (R := R) (C := C) (M := N) ∘ₗ e.toLinearMap)
-    : M ≅ N :=
-  ObjectProperty.isoMk
-    (P := ComoduleCat.isFG (R := R) (C := C))
-    (ComoduleCat.isoOfLinearEquiv (R := R) (C := C) e h)
-
-/-- The forward morphism of `isoOfLinearEquiv` has the original linear equivalence
-underneath. -/
-@[simp]
-theorem isoOfLinearEquiv_hom_toLinearMap {M N : FGComoduleCat.{u, v, w} R C}
-    (e : M ≃ₗ[R] N) (h) :
-    ((isoOfLinearEquiv (R := R) (C := C) e h).hom).hom.toLinearMap = e.toLinearMap :=
-  ComoduleCat.isoOfLinearEquiv_hom_toLinearMap (R := R) (C := C) e h
-
-/-- The inverse morphism of `isoOfLinearEquiv` has the inverse linear equivalence
-underneath. -/
-@[simp]
-theorem isoOfLinearEquiv_inv_toLinearMap {M N : FGComoduleCat.{u, v, w} R C}
-    (e : M ≃ₗ[R] N) (h) :
-    ((isoOfLinearEquiv (R := R) (C := C) e h).inv).hom.toLinearMap =
-      e.symm.toLinearMap :=
-  ComoduleCat.isoOfLinearEquiv_inv_toLinearMap (R := R) (C := C) e h
-
-/-- The forward morphism of `isoOfLinearEquiv` applies as the original linear equivalence. -/
-@[simp]
-theorem isoOfLinearEquiv_hom_apply {M N : FGComoduleCat.{u, v, w} R C}
-    (e : M ≃ₗ[R] N) (h) (m : M) :
-    (isoOfLinearEquiv (R := R) (C := C) e h).hom m = e m :=
-  ComoduleCat.isoOfLinearEquiv_hom_apply (R := R) (C := C) e h m
-
-/-- The inverse morphism of `isoOfLinearEquiv` applies as the inverse linear equivalence. -/
-@[simp]
-theorem isoOfLinearEquiv_inv_apply {M N : FGComoduleCat.{u, v, w} R C}
-    (e : M ≃ₗ[R] N) (h) (n : N) :
-    (isoOfLinearEquiv (R := R) (C := C) e h).inv n = e.symm n :=
-  ComoduleCat.isoOfLinearEquiv_inv_apply (R := R) (C := C) e h n
-
-/-- Converting `isoOfLinearEquiv` back to a linear equivalence recovers the original linear
-equivalence. -/
-@[simp]
-theorem isoToLinearEquiv_isoOfLinearEquiv {M N : FGComoduleCat.{u, v, w} R C}
-    (e : M ≃ₗ[R] N) (h) :
-    isoToLinearEquiv (R := R) (C := C) (isoOfLinearEquiv (R := R) (C := C) e h) =
-      e := by
-  exact ComoduleCat.isoToLinearEquiv_isoOfLinearEquiv (R := R) (C := C) e h
-
-/-- Rebuilding a finitely generated comodule isomorphism from its induced linear equivalence
-recovers the original isomorphism. -/
-@[simp]
-theorem isoOfLinearEquiv_isoToLinearEquiv {M N : FGComoduleCat.{u, v, w} R C} (i : M ≅ N) :
-    isoOfLinearEquiv (R := R) (C := C) (isoToLinearEquiv (R := R) (C := C) i)
-      (by simp [i.hom.hom.map_coact]) = i := by
-  ext m
-  have hmap :
-      ((isoOfLinearEquiv (R := R) (C := C) (isoToLinearEquiv (R := R) (C := C) i)
-        (by simp [i.hom.hom.map_coact])).hom).hom.toLinearMap =
-          i.hom.hom.toLinearMap := by
-    simp [isoToLinearEquiv]
-  exact LinearMap.congr_fun hmap m
 
 variable (R C)
 
