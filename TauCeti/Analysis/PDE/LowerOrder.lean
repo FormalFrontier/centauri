@@ -211,6 +211,13 @@ lemma norm_bound (h : NonnegMassOn Ω c gamma) {x : X} (hx : x ∈ Ω) :
     ‖c x‖ ≤ gamma := by
   simpa [Real.norm_eq_abs, abs_of_nonneg (h.nonneg hx)] using h.upper_bound hx
 
+/-- The mass form associated to a nonnegative mass coefficient is nonnegative on the diagonal. -/
+@[grind =>]
+lemma nonneg_massForm_self (h : NonnegMassOn Ω c gamma) {x : X} (hx : x ∈ Ω) (u : ℝ) :
+    0 ≤ massForm (c x) u u := by
+  rw [massForm_apply, mul_assoc]
+  exact mul_nonneg (h.nonneg hx) (mul_self_nonneg u)
+
 /-- Restricting the domain preserves nonnegative bounded mass coefficients. -/
 lemma mono_set (h : NonnegMassOn Ω c gamma) (hΩ : Ω' ⊆ Ω) :
     NonnegMassOn Ω' c gamma :=
