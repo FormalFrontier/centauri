@@ -21,8 +21,10 @@ representation category can be developed.
 
 ## Main declarations
 
-* `TauCeti.Comodule.Hom.instNeg`, `instSub`, `instAddCommGroup`: pointwise additive-group
-  structure on comodule morphisms over a commutative ring.
+* `TauCeti.Comodule.Hom.instAddCommGroup`: pointwise additive-group structure on comodule
+  morphisms over a commutative ring.
+* `TauCeti.ComoduleCat.homAddCommGroup`: additive-group structure on bundled comodule
+  morphisms over a commutative ring.
 * `TauCeti.ComoduleCat.preadditive`: `ComoduleCat R C` is preadditive over a commutative
   ring `R`.
 
@@ -45,53 +47,28 @@ universe u v w x
 
 variable {R : Type u} {C : Type v} {M : Type w} {N : Type x}
 variable [CommRing R]
-variable [AddCommGroup C] [Module R C] [Coalgebra R C]
-variable [AddCommGroup M] [Module R M] [Comodule R C M]
-variable [AddCommGroup N] [Module R N] [Comodule R C N]
+variable [AddCommMonoid C] [Module R C] [Coalgebra R C]
+variable [AddCommMonoid M] [Module R M] [Comodule R C M]
+variable [AddCommMonoid N] [Module R N] [Comodule R C N]
 
 namespace Hom
 
-/-- Negation of right-comodule morphisms, defined pointwise. -/
-instance instNeg : Neg (Hom R C M N) where
-  neg f :=
-    { toLinearMap := -f.toLinearMap
-      map_coact := by
-        ext m
-        rw [← neg_one_smul R f.toLinearMap, TensorProduct.map_smul_left]
-        simp [map_coact_apply] }
-
-/-- Subtraction of right-comodule morphisms, defined pointwise. -/
-instance instSub : Sub (Hom R C M N) where
-  sub f g :=
-    { toLinearMap := f.toLinearMap - g.toLinearMap
-      map_coact := by
-        ext m
-        rw [sub_eq_add_neg, TensorProduct.map_add_left]
-        rw [← neg_one_smul R g.toLinearMap, TensorProduct.map_smul_left]
-        simp [map_coact_apply] }
-
-/-- Integer scalar multiplication of right-comodule morphisms, defined pointwise. -/
-instance instZSMul : SMul ℤ (Hom R C M N) where
-  smul z f :=
-    { toLinearMap := z • f.toLinearMap
-      map_coact := by
-        ext m
-        dsimp
-        have hzmap : z • f.toLinearMap = (z : R) • f.toLinearMap := by
-          ext n
-          rw [Int.cast_smul_eq_zsmul]
-        rw [hzmap, TensorProduct.map_smul_left]
-        rw [LinearMap.smul_apply, map_coact_apply, ← Int.cast_smul_eq_zsmul R z (f m),
-          map_smul] }
+/-- Comodule morphisms over a commutative ring form an additive commutative group under
+pointwise operations. -/
+instance instAddCommGroup : AddCommGroup (Hom R C M N) :=
+  Module.addCommMonoidToAddCommGroup R
 
 /-- Negation of comodule morphisms is negation of the underlying linear maps. -/
 @[simp]
-theorem neg_toLinearMap (f : Hom R C M N) : (-f).toLinearMap = -f.toLinearMap :=
+theorem neg_toLinearMap (f : Hom R C M N) :
+    letI : AddCommGroup N := Module.addCommMonoidToAddCommGroup R
+    (-f).toLinearMap = -f.toLinearMap :=
   rfl
 
 /-- Subtraction of comodule morphisms is subtraction of the underlying linear maps. -/
 @[simp]
 theorem sub_toLinearMap (f g : Hom R C M N) :
+    letI : AddCommGroup N := Module.addCommMonoidToAddCommGroup R
     (f - g).toLinearMap = f.toLinearMap - g.toLinearMap :=
   rfl
 
@@ -99,43 +76,40 @@ theorem sub_toLinearMap (f g : Hom R C M N) :
 the underlying linear maps. -/
 @[simp]
 theorem zsmul_toLinearMap (z : ℤ) (f : Hom R C M N) :
+    letI : AddCommGroup N := Module.addCommMonoidToAddCommGroup R
     (z • f).toLinearMap = z • f.toLinearMap :=
   rfl
 
 /-- Negation of comodule morphisms is pointwise negation. -/
 @[simp]
-theorem neg_apply (f : Hom R C M N) (m : M) : (-f) m = -f m :=
+theorem neg_apply (f : Hom R C M N) (m : M) :
+    letI : AddCommGroup N := Module.addCommMonoidToAddCommGroup R
+    (-f) m = -f m :=
   rfl
 
 /-- Subtraction of comodule morphisms is pointwise subtraction. -/
 @[simp]
-theorem sub_apply (f g : Hom R C M N) (m : M) : (f - g) m = f m - g m :=
+theorem sub_apply (f g : Hom R C M N) (m : M) :
+    letI : AddCommGroup N := Module.addCommMonoidToAddCommGroup R
+    (f - g) m = f m - g m :=
   rfl
 
 /-- Integer scalar multiplication of comodule morphisms is pointwise. -/
 @[simp]
 theorem zsmul_apply (z : ℤ) (f : Hom R C M N) (m : M) :
+    letI : AddCommGroup N := Module.addCommMonoidToAddCommGroup R
     (z • f) m = z • f m :=
   rfl
 
-/-- Comodule morphisms over a commutative ring form an additive commutative group under
-pointwise operations. -/
-instance instAddCommGroupRing : AddCommGroup (Hom R C M N) :=
-  Function.Injective.addCommGroup (fun f : Hom R C M N => f.toLinearMap)
-    (fun f g h => by
-      ext m
-      exact LinearMap.congr_fun h m)
-    zero_toLinearMap add_toLinearMap neg_toLinearMap sub_toLinearMap
-    (fun f n => nsmul_toLinearMap n f) (fun f z => zsmul_toLinearMap z f)
-
 section Comp
 
-variable {P : Type*} [AddCommGroup P] [Module R P] [Comodule R C P]
+variable {P : Type*} [AddCommMonoid P] [Module R P] [Comodule R C P]
 
 /-- Composition of comodule morphisms is compatible with negation in the left argument. -/
 @[simp]
 theorem neg_comp (g : Hom R C N P) (f : Hom R C M N) :
     comp (-g) f = -comp g f := by
+  letI : AddCommGroup P := Module.addCommMonoidToAddCommGroup R
   ext m
   simp [comp]
 
@@ -143,6 +117,8 @@ theorem neg_comp (g : Hom R C N P) (f : Hom R C M N) :
 @[simp]
 theorem comp_neg (g : Hom R C N P) (f : Hom R C M N) :
     comp g (-f) = -comp g f := by
+  letI : AddCommGroup N := Module.addCommMonoidToAddCommGroup R
+  letI : AddCommGroup P := Module.addCommMonoidToAddCommGroup R
   ext m
   exact map_neg g.toLinearMap (f m)
 
@@ -150,6 +126,7 @@ theorem comp_neg (g : Hom R C N P) (f : Hom R C M N) :
 @[simp]
 theorem sub_comp (g h : Hom R C N P) (f : Hom R C M N) :
     comp (g - h) f = comp g f - comp h f := by
+  letI : AddCommGroup P := Module.addCommMonoidToAddCommGroup R
   ext m
   simp [comp, sub_eq_add_neg]
 
@@ -157,6 +134,8 @@ theorem sub_comp (g h : Hom R C N P) (f : Hom R C M N) :
 @[simp]
 theorem comp_sub (g : Hom R C N P) (f h : Hom R C M N) :
     comp g (f - h) = comp g f - comp g h := by
+  letI : AddCommGroup N := Module.addCommMonoidToAddCommGroup R
+  letI : AddCommGroup P := Module.addCommMonoidToAddCommGroup R
   ext m
   exact map_sub g.toLinearMap (f m) (h m)
 
@@ -172,6 +151,53 @@ universe u v w
 
 variable (R : Type u) [CommRing R]
 variable (C : Type v) [AddCommMonoid C] [Module R C] [Coalgebra R C]
+
+/-- Categorical morphisms form an additive commutative group over a commutative ring. -/
+instance homAddCommGroup (M N : ComoduleCat.{u, v, w} R C) : AddCommGroup (M ⟶ N) :=
+  inferInstanceAs (AddCommGroup (Comodule.Hom R C M N))
+
+/-- Negation of morphisms is negation of the underlying linear maps. -/
+@[simp]
+theorem toLinearMap_neg {M N : ComoduleCat.{u, v, w} R C} (f : M ⟶ N) :
+    letI : AddCommGroup N := Module.addCommMonoidToAddCommGroup R
+    (-f).toLinearMap = -f.toLinearMap :=
+  Comodule.Hom.neg_toLinearMap f
+
+/-- Subtraction of morphisms is subtraction of the underlying linear maps. -/
+@[simp]
+theorem toLinearMap_sub {M N : ComoduleCat.{u, v, w} R C} (f g : M ⟶ N) :
+    letI : AddCommGroup N := Module.addCommMonoidToAddCommGroup R
+    (f - g).toLinearMap = f.toLinearMap - g.toLinearMap :=
+  Comodule.Hom.sub_toLinearMap f g
+
+/-- Integer scalar multiplication of morphisms is integer scalar multiplication of the
+underlying linear maps. -/
+@[simp]
+theorem toLinearMap_zsmul {M N : ComoduleCat.{u, v, w} R C} (z : ℤ) (f : M ⟶ N) :
+    letI : AddCommGroup N := Module.addCommMonoidToAddCommGroup R
+    (z • f).toLinearMap = z • f.toLinearMap :=
+  Comodule.Hom.zsmul_toLinearMap z f
+
+/-- Negation of morphisms acts by pointwise negation. -/
+@[simp]
+theorem neg_apply {M N : ComoduleCat.{u, v, w} R C} (f : M ⟶ N) (m : M) :
+    letI : AddCommGroup N := Module.addCommMonoidToAddCommGroup R
+    (-f) m = -f m :=
+  Comodule.Hom.neg_apply f m
+
+/-- Subtraction of morphisms acts by pointwise subtraction. -/
+@[simp]
+theorem sub_apply {M N : ComoduleCat.{u, v, w} R C} (f g : M ⟶ N) (m : M) :
+    letI : AddCommGroup N := Module.addCommMonoidToAddCommGroup R
+    (f - g) m = f m - g m :=
+  Comodule.Hom.sub_apply f g m
+
+/-- Integer scalar multiplication of morphisms acts pointwise. -/
+@[simp]
+theorem zsmul_apply {M N : ComoduleCat.{u, v, w} R C} (z : ℤ) (f : M ⟶ N) (m : M) :
+    letI : AddCommGroup N := Module.addCommMonoidToAddCommGroup R
+    (z • f) m = z • f m :=
+  Comodule.Hom.zsmul_apply z f m
 
 /-- The category of right comodules over a coalgebra over a commutative ring is
 preadditive. -/
