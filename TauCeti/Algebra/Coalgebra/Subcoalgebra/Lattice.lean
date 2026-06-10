@@ -2,6 +2,7 @@
 Copyright (c) 2026 The Tau Ceti contributors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
+import Mathlib.LinearAlgebra.DFinsupp
 import Mathlib.RingTheory.Finiteness.Basic
 import TauCeti.Algebra.Coalgebra.Subcoalgebra
 
@@ -20,8 +21,9 @@ finite-dimensional subcoalgebras: finite sums of finite subcoalgebras remain fin
 ## Main declarations
 
 * `Subcoalgebra.instCompleteSemilatticeSup`: arbitrary suprema of subcoalgebras.
-* `Subcoalgebra.iSup_toSubmodule`, `Subcoalgebra.sup_toSubmodule`, `Subcoalgebra.mem_sup`:
-  characteristic API for joins.
+* `Subcoalgebra.iSup_toSubmodule`, `Subcoalgebra.mem_iSup`, `Subcoalgebra.mem_sSup`:
+  characteristic API for arbitrary joins.
+* `Subcoalgebra.sup_toSubmodule`, `Subcoalgebra.mem_sup`: characteristic API for binary joins.
 * `Subcoalgebra.iSup_finite`, `Subcoalgebra.sup_finite`, `Subcoalgebra.finset_sup_finite`:
   finite generation is preserved by finite joins.
 -/
@@ -111,21 +113,17 @@ theorem mem_sup {D E : Subcoalgebra R C} {c : C} :
   rw [← mem_toSubmodule, sup_toSubmodule, Submodule.mem_sup]
   rfl
 
-/-- The left subcoalgebra is contained in the join. -/
-theorem le_sup_left (D E : Subcoalgebra R C) : D ≤ D ⊔ E := by
+private theorem le_sup_left' (D E : Subcoalgebra R C) : D ≤ D ⊔ E := by
   intro c hc
   rw [← mem_toSubmodule, sup_toSubmodule]
   exact Submodule.mem_sup_left ((mem_toSubmodule).2 hc)
 
-/-- The right subcoalgebra is contained in the join. -/
-theorem le_sup_right (D E : Subcoalgebra R C) : E ≤ D ⊔ E := by
+private theorem le_sup_right' (D E : Subcoalgebra R C) : E ≤ D ⊔ E := by
   intro c hc
   rw [← mem_toSubmodule, sup_toSubmodule]
   exact Submodule.mem_sup_right ((mem_toSubmodule).2 hc)
 
-/-- To prove a join of subcoalgebras is contained in a third subcoalgebra, prove containment
-for each summand. -/
-theorem sup_le {D E F : Subcoalgebra R C} (hD : D ≤ F) (hE : E ≤ F) :
+private theorem sup_le' {D E F : Subcoalgebra R C} (hD : D ≤ F) (hE : E ≤ F) :
     D ⊔ E ≤ F := by
   intro c hc
   rw [mem_sup] at hc
@@ -135,8 +133,8 @@ theorem sup_le {D E F : Subcoalgebra R C} (hD : D ≤ F) (hE : E ≤ F) :
 /-- Subcoalgebras form a semilattice under the join whose carrier is the supremum of the
 underlying submodules. -/
 instance instSemilatticeSup : SemilatticeSup (Subcoalgebra R C) :=
-  SemilatticeSup.mk (fun D E => D ⊔ E) le_sup_left le_sup_right
-    (fun _ _ _ => sup_le)
+  SemilatticeSup.mk (fun D E => D ⊔ E) le_sup_left' le_sup_right'
+    (fun _ _ _ => sup_le')
 
 /-- The underlying submodule of a supremum of a set of subcoalgebras is the supremum of the
 underlying submodules indexed by that set. -/
@@ -144,6 +142,15 @@ underlying submodules indexed by that set. -/
 theorem sSup_toSubmodule (S : Set (Subcoalgebra R C)) :
     (sSup S).toSubmodule = ⨆ D : S, (D : Subcoalgebra R C).toSubmodule :=
   rfl
+
+/-- Membership in the supremum of a set of subcoalgebras. -/
+theorem mem_sSup {S : Set (Subcoalgebra R C)} {c : C} :
+    c ∈ sSup S ↔
+      ∃ f : S →₀ C, (∀ D : S, f D ∈ (D : Subcoalgebra R C)) ∧
+        f.sum (fun _ x => x) = c := by
+  rw [← mem_toSubmodule, sSup_toSubmodule]
+  exact Submodule.mem_iSup_iff_exists_finsupp
+    (fun D : S => (D : Subcoalgebra R C).toSubmodule) c
 
 /-- The underlying submodule of a supremum of subcoalgebras is the supremum of the
 underlying submodules. -/
@@ -153,6 +160,13 @@ theorem iSup_toSubmodule {ι : Sort*} (D : ι → Subcoalgebra R C) :
   rw [iSup, sSup_toSubmodule]
   ext c
   simp [Submodule.mem_iSup]
+
+/-- Membership in the supremum of a family of subcoalgebras. -/
+theorem mem_iSup {ι : Type*} {D : ι → Subcoalgebra R C} {c : C} :
+    c ∈ ⨆ i, D i ↔
+      ∃ f : ι →₀ C, (∀ i, f i ∈ D i) ∧ f.sum (fun _ x => x) = c := by
+  rw [← mem_toSubmodule, iSup_toSubmodule]
+  exact Submodule.mem_iSup_iff_exists_finsupp (fun i => (D i).toSubmodule) c
 
 /-- Subcoalgebras have arbitrary suprema, computed on underlying submodules. -/
 instance instCompleteSemilatticeSup : CompleteSemilatticeSup (Subcoalgebra R C) where
