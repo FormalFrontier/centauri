@@ -3,7 +3,6 @@ Copyright (c) 2026 The Tau Ceti contributors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
 import Mathlib.Analysis.CStarAlgebra.Matrix
-import Mathlib.Analysis.InnerProductSpace.LaxMilgram
 import TauCeti.Analysis.PDE.UniformEllipticity
 
 /-!
@@ -44,27 +43,30 @@ noncomputable section
 
 variable {n : Type*} [Fintype n] [DecidableEq n]
 
-private lemma toSesqForm_toEuclideanCLM_apply (A : Matrix n n ℝ) (η ξ : EuclideanSpace ℝ n) :
+/-- Mathlib's matrix sesquilinear form is the pointwise dot-product expression. -/
+@[simp]
+lemma toSesqForm_toEuclideanCLM_apply (A : Matrix n n ℝ) (η ξ : EuclideanSpace ℝ n) :
     (ContinuousLinearMap.toSesqForm (Matrix.toEuclideanCLM (𝕜 := ℝ) A) η) ξ =
       η ⬝ᵥ (A *ᵥ ξ) := by
   exact Matrix.inner_toEuclideanCLM A η ξ
+
+/-- Mathlib's matrix sesquilinear form is the same bundled bilinear form as
+`matrixBilinearForm`. -/
+lemma toSesqForm_toEuclideanCLM_eq_matrixBilinearForm (A : Matrix n n ℝ) :
+    ContinuousLinearMap.toSesqForm (Matrix.toEuclideanCLM (𝕜 := ℝ) A) =
+      matrixBilinearForm A := by
+  ext η ξ
+  rw [toSesqForm_toEuclideanCLM_apply]
+  exact (matrixBilinearForm_apply A η ξ).symm
 
 /-- The operator norm of Mathlib's matrix sesquilinear form is controlled by the supplied
 upper bound. -/
 lemma norm_toSesqForm_toEuclideanCLM_le (A : Matrix n n ℝ) {C : ℝ} (hC_nonneg : 0 ≤ C)
     (hC : ∀ η ξ : EuclideanSpace ℝ n, |η ⬝ᵥ (A *ᵥ ξ)| ≤ C * ‖η‖ * ‖ξ‖) :
     ‖ContinuousLinearMap.toSesqForm (Matrix.toEuclideanCLM (𝕜 := ℝ) A)‖ ≤ C :=
-  ContinuousLinearMap.opNorm_le_bound
-    (ContinuousLinearMap.toSesqForm (Matrix.toEuclideanCLM (𝕜 := ℝ) A)) hC_nonneg fun η => by
-    refine ContinuousLinearMap.opNorm_le_bound
-      ((ContinuousLinearMap.toSesqForm (Matrix.toEuclideanCLM (𝕜 := ℝ) A)) η)
-      (mul_nonneg hC_nonneg (norm_nonneg η)) fun ξ => ?_
-    calc
-      ‖(ContinuousLinearMap.toSesqForm (Matrix.toEuclideanCLM (𝕜 := ℝ) A) η) ξ‖ =
-          |η ⬝ᵥ (A *ᵥ ξ)| := by
-        rw [toSesqForm_toEuclideanCLM_apply, Real.norm_eq_abs]
-      _ ≤ C * ‖η‖ * ‖ξ‖ := hC η ξ
-      _ = (C * ‖η‖) * ‖ξ‖ := by ring
+  by
+    rw [toSesqForm_toEuclideanCLM_eq_matrixBilinearForm]
+    exact matrixBilinearForm_opNorm_le_of_upper_bound A hC_nonneg hC
 
 /-- A pointwise lower quadratic-form bound gives coercivity of the associated continuous
 bilinear form, in Mathlib's `IsCoercive` sense used by Lax--Milgram. -/
@@ -72,13 +74,8 @@ lemma toSesqForm_toEuclideanCLM_isCoercive_of_lower_bound (A : Matrix n n ℝ) {
     (hlam : 0 < lam)
     (hlower : ∀ ξ : EuclideanSpace ℝ n, lam * ‖ξ‖ ^ 2 ≤ (A.toQuadraticForm' ξ)) :
     IsCoercive (ContinuousLinearMap.toSesqForm (Matrix.toEuclideanCLM (𝕜 := ℝ) A)) := by
-  refine ⟨lam, hlam, fun ξ => ?_⟩
-  calc
-    lam * ‖ξ‖ * ‖ξ‖ = lam * ‖ξ‖ ^ 2 := by ring
-    _ ≤ A.toQuadraticForm' ξ := hlower ξ
-    _ = (ContinuousLinearMap.toSesqForm (Matrix.toEuclideanCLM (𝕜 := ℝ) A) ξ) ξ := by
-      rw [toQuadraticForm'_eq_dotProduct]
-      exact (Matrix.inner_toEuclideanCLM A ξ ξ).symm
+  rw [toSesqForm_toEuclideanCLM_eq_matrixBilinearForm]
+  exact isCoercive_matrixBilinearForm_of_lower_bound A hlam hlower
 
 /-- Uniform ellipticity at a point gives coercivity of the pointwise energy form. -/
 lemma toSesqForm_toEuclideanCLM_isCoercive_of_uniformlyEllipticOn {X : Type*} {Ω : Set X}
