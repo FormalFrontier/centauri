@@ -31,9 +31,6 @@ choose the trivial one.
   comodules.
 * `TauCeti.Comodule.Hom.trivialEquiv`: these comodule morphisms are equivalent to ordinary
   linear maps.
-* `TauCeti.Comodule.groupLikeTensor`: the tensor product of two group-like comodules,
-  attached to the product of their group-like elements.
-* `TauCeti.Comodule.trivialTensor`: the tensor product of two trivial comodules.
 * `TauCeti.ComoduleCat.trivial`: the bundled tensor-unit comodule over a bialgebra.
 
 ## References
@@ -49,7 +46,7 @@ open scoped TensorProduct
 
 namespace TauCeti
 
-universe u v w x y z
+universe u v w x
 
 namespace Comodule
 
@@ -205,130 +202,6 @@ end Hom
 
 end GroupLikeDef
 
-section GroupLikeTensor
-
-variable [Semiring C] [Bialgebra R C]
-
-/-- The tensor product of the group-like comodules attached to `g` and `h`.
-
-The resulting group-like element is the bialgebra product `g * h`, so the coaction sends
-`m ⊗ n` to `(m ⊗ n) ⊗ (g * h)`. -/
-@[implicit_reducible]
-def groupLikeTensor (g h : GroupLike R C) : Comodule R C (M ⊗[R] N) :=
-  groupLike (R := R) (C := C) (M := M ⊗[R] N) (g * h)
-
-/-- The tensor product group-like coaction sends `t` to `t ⊗ (g * h)`. -/
-@[simp]
-theorem groupLikeTensor_coact_apply (g h : GroupLike R C) (t : M ⊗[R] N) :
-    letI : Comodule R C (M ⊗[R] N) :=
-      groupLikeTensor (R := R) (C := C) (M := M) (N := N) g h
-    coact (R := R) (C := C) (M := M ⊗[R] N) t =
-      t ⊗ₜ[R] ((g * h : GroupLike R C) : C) :=
-  rfl
-
-/-- The tensor product group-like coaction is the map `t ↦ t ⊗ (g * h)`. -/
-@[simp]
-theorem groupLikeTensor_coact (g h : GroupLike R C) :
-    letI : Comodule R C (M ⊗[R] N) :=
-      groupLikeTensor (R := R) (C := C) (M := M) (N := N) g h
-    coact (R := R) (C := C) (M := M ⊗[R] N) =
-      (TensorProduct.mk R (M ⊗[R] N) C).flip ((g * h : GroupLike R C) : C) :=
-  rfl
-
-/-- Pointwise form of the tensor product group-like coaction on pure tensors. -/
-@[simp]
-theorem groupLikeTensor_coact_tmul (g h : GroupLike R C) (m : M) (n : N) :
-    letI : Comodule R C (M ⊗[R] N) :=
-      groupLikeTensor (R := R) (C := C) (M := M) (N := N) g h
-    coact (R := R) (C := C) (M := M ⊗[R] N) (m ⊗ₜ[R] n) =
-      (m ⊗ₜ[R] n) ⊗ₜ[R] ((g * h : GroupLike R C) : C) :=
-  rfl
-
-namespace Hom
-
-variable {M' : Type y} {N' : Type z}
-variable [AddCommMonoid M'] [Module R M']
-variable [AddCommMonoid N'] [Module R N']
-
-/-- Tensor two linear maps as a comodule morphism between tensor products of group-like
-comodules attached to the same pair of group-like elements. -/
-def tensorGroupLike (g h : GroupLike R C) (f : M →ₗ[R] M') (k : N →ₗ[R] N') :
-    letI : Comodule R C (M ⊗[R] N) :=
-      groupLikeTensor (R := R) (C := C) (M := M) (N := N) g h
-    letI : Comodule R C (M' ⊗[R] N') :=
-      groupLikeTensor (R := R) (C := C) (M := M') (N := N') g h
-    Hom R C (M ⊗[R] N) (M' ⊗[R] N') := by
-  letI : Comodule R C (M ⊗[R] N) :=
-    groupLikeTensor (R := R) (C := C) (M := M) (N := N) g h
-  letI : Comodule R C (M' ⊗[R] N') :=
-    groupLikeTensor (R := R) (C := C) (M := M') (N := N') g h
-  exact ofGroupLike (R := R) (C := C) (g * h) (TensorProduct.map f k)
-
-/-- The underlying linear map of `Hom.tensorGroupLike` is the tensor product map. -/
-@[simp]
-theorem tensorGroupLike_toLinearMap (g h : GroupLike R C) (f : M →ₗ[R] M') (k : N →ₗ[R] N') :
-    letI : Comodule R C (M ⊗[R] N) :=
-      groupLikeTensor (R := R) (C := C) (M := M) (N := N) g h
-    letI : Comodule R C (M' ⊗[R] N') :=
-      groupLikeTensor (R := R) (C := C) (M := M') (N := N') g h
-    (tensorGroupLike (R := R) (C := C) g h f k).toLinearMap = TensorProduct.map f k :=
-  rfl
-
-/-- The tensor product group-like morphism acts on pure tensors by applying both maps. -/
-@[simp]
-theorem tensorGroupLike_tmul (g h : GroupLike R C) (f : M →ₗ[R] M') (k : N →ₗ[R] N')
-    (m : M) (n : N) :
-    letI : Comodule R C (M ⊗[R] N) :=
-      groupLikeTensor (R := R) (C := C) (M := M) (N := N) g h
-    letI : Comodule R C (M' ⊗[R] N') :=
-      groupLikeTensor (R := R) (C := C) (M := M') (N := N') g h
-    tensorGroupLike (R := R) (C := C) g h f k (m ⊗ₜ[R] n) =
-      f m ⊗ₜ[R] k n := by
-  simp [tensorGroupLike]
-
-/-- Tensoring identity maps between group-like tensor-product comodules gives the identity
-comodule morphism. -/
-@[simp]
-theorem tensorGroupLike_id (g h : GroupLike R C) :
-    letI : Comodule R C (M ⊗[R] N) :=
-      groupLikeTensor (R := R) (C := C) (M := M) (N := N) g h
-    tensorGroupLike (R := R) (C := C) (M := M) (N := N) g h LinearMap.id LinearMap.id =
-      Comodule.Hom.id R C (M ⊗[R] N) := by
-  letI : Comodule R C (M ⊗[R] N) :=
-    groupLikeTensor (R := R) (C := C) (M := M) (N := N) g h
-  ext t
-  simp [tensorGroupLike]
-  rfl
-
-/-- Tensoring composite maps between group-like tensor-product comodules gives the composite
-of the tensor-product comodule morphisms. -/
-@[simp]
-theorem tensorGroupLike_comp {M'' N'' : Type*}
-    [AddCommMonoid M''] [Module R M''] [AddCommMonoid N''] [Module R N'']
-    (g h : GroupLike R C) (f₂ : M' →ₗ[R] M'') (k₂ : N' →ₗ[R] N'')
-    (f₁ : M →ₗ[R] M') (k₁ : N →ₗ[R] N') :
-    letI : Comodule R C (M ⊗[R] N) :=
-      groupLikeTensor (R := R) (C := C) (M := M) (N := N) g h
-    letI : Comodule R C (M' ⊗[R] N') :=
-      groupLikeTensor (R := R) (C := C) (M := M') (N := N') g h
-    letI : Comodule R C (M'' ⊗[R] N'') :=
-      groupLikeTensor (R := R) (C := C) (M := M'') (N := N'') g h
-    tensorGroupLike (R := R) (C := C) g h (f₂.comp f₁) (k₂.comp k₁) =
-      comp (tensorGroupLike (R := R) (C := C) g h f₂ k₂)
-        (tensorGroupLike (R := R) (C := C) g h f₁ k₁) := by
-  letI : Comodule R C (M ⊗[R] N) :=
-    groupLikeTensor (R := R) (C := C) (M := M) (N := N) g h
-  letI : Comodule R C (M' ⊗[R] N') :=
-    groupLikeTensor (R := R) (C := C) (M := M') (N := N') g h
-  letI : Comodule R C (M'' ⊗[R] N'') :=
-    groupLikeTensor (R := R) (C := C) (M := M'') (N := N'') g h
-  ext t
-  simp [tensorGroupLike, TensorProduct.map_comp]
-
-end Hom
-
-end GroupLikeTensor
-
 section TrivialDef
 
 variable [Semiring C] [Bialgebra R C]
@@ -421,123 +294,6 @@ end Hom
 end Trivial
 
 end TrivialDef
-
-section TrivialTensor
-
-variable [Semiring C] [Bialgebra R C]
-
-/-- The tensor product of two trivial right comodules. -/
-@[implicit_reducible]
-def trivialTensor : Comodule R C (M ⊗[R] N) :=
-  trivial (R := R) (C := C) (M := M ⊗[R] N)
-
-/-- The tensor product trivial coaction sends `t` to `t ⊗ 1`. -/
-@[simp]
-theorem trivialTensor_coact_apply (t : M ⊗[R] N) :
-    letI : Comodule R C (M ⊗[R] N) :=
-      trivialTensor (R := R) (C := C) (M := M) (N := N)
-    coact (R := R) (C := C) (M := M ⊗[R] N) t = t ⊗ₜ[R] (1 : C) :=
-  rfl
-
-/-- The tensor product trivial coaction is the map `t ↦ t ⊗ 1`. -/
-@[simp]
-theorem trivialTensor_coact :
-    letI : Comodule R C (M ⊗[R] N) :=
-      trivialTensor (R := R) (C := C) (M := M) (N := N)
-    coact (R := R) (C := C) (M := M ⊗[R] N) =
-      (TensorProduct.mk R (M ⊗[R] N) C).flip (1 : C) :=
-  rfl
-
-/-- Pointwise form of the tensor product trivial coaction on pure tensors. -/
-@[simp]
-theorem trivialTensor_coact_tmul (m : M) (n : N) :
-    letI : Comodule R C (M ⊗[R] N) :=
-      trivialTensor (R := R) (C := C) (M := M) (N := N)
-    coact (R := R) (C := C) (M := M ⊗[R] N) (m ⊗ₜ[R] n) =
-      (m ⊗ₜ[R] n) ⊗ₜ[R] (1 : C) :=
-  rfl
-
-namespace Hom
-
-variable {M' : Type y} {N' : Type z}
-variable [AddCommMonoid M'] [Module R M']
-variable [AddCommMonoid N'] [Module R N']
-
-/-- Tensor two linear maps as a comodule morphism between tensor products of trivial
-comodules. -/
-def tensorTrivial (f : M →ₗ[R] M') (k : N →ₗ[R] N') :
-    letI : Comodule R C (M ⊗[R] N) :=
-      trivialTensor (R := R) (C := C) (M := M) (N := N)
-    letI : Comodule R C (M' ⊗[R] N') :=
-      trivialTensor (R := R) (C := C) (M := M') (N := N')
-    Hom R C (M ⊗[R] N) (M' ⊗[R] N') := by
-  letI : Comodule R C (M ⊗[R] N) :=
-    trivialTensor (R := R) (C := C) (M := M) (N := N)
-  letI : Comodule R C (M' ⊗[R] N') :=
-    trivialTensor (R := R) (C := C) (M := M') (N := N')
-  exact ofTrivial (R := R) (C := C) (TensorProduct.map f k)
-
-/-- The underlying linear map of `Hom.tensorTrivial` is the tensor product map. -/
-@[simp]
-theorem tensorTrivial_toLinearMap (f : M →ₗ[R] M') (k : N →ₗ[R] N') :
-    letI : Comodule R C (M ⊗[R] N) :=
-      trivialTensor (R := R) (C := C) (M := M) (N := N)
-    letI : Comodule R C (M' ⊗[R] N') :=
-      trivialTensor (R := R) (C := C) (M := M') (N := N')
-    (tensorTrivial (R := R) (C := C) f k).toLinearMap = TensorProduct.map f k :=
-  rfl
-
-/-- The tensor product trivial morphism acts on pure tensors by applying both maps. -/
-@[simp]
-theorem tensorTrivial_tmul (f : M →ₗ[R] M') (k : N →ₗ[R] N') (m : M) (n : N) :
-    letI : Comodule R C (M ⊗[R] N) :=
-      trivialTensor (R := R) (C := C) (M := M) (N := N)
-    letI : Comodule R C (M' ⊗[R] N') :=
-      trivialTensor (R := R) (C := C) (M := M') (N := N')
-    tensorTrivial (R := R) (C := C) f k (m ⊗ₜ[R] n) = f m ⊗ₜ[R] k n := by
-  simp [tensorTrivial]
-
-/-- Tensoring identity maps between trivial tensor-product comodules gives the identity
-comodule morphism. -/
-@[simp]
-theorem tensorTrivial_id :
-    letI : Comodule R C (M ⊗[R] N) :=
-      trivialTensor (R := R) (C := C) (M := M) (N := N)
-    tensorTrivial (R := R) (C := C) (M := M) (N := N) LinearMap.id LinearMap.id =
-      Comodule.Hom.id R C (M ⊗[R] N) := by
-  letI : Comodule R C (M ⊗[R] N) :=
-    trivialTensor (R := R) (C := C) (M := M) (N := N)
-  ext t
-  simp [tensorTrivial]
-  rfl
-
-/-- Tensoring composite maps between trivial tensor-product comodules gives the composite of
-the tensor-product comodule morphisms. -/
-@[simp]
-theorem tensorTrivial_comp {M'' N'' : Type*}
-    [AddCommMonoid M''] [Module R M''] [AddCommMonoid N''] [Module R N'']
-    (f₂ : M' →ₗ[R] M'') (k₂ : N' →ₗ[R] N'') (f₁ : M →ₗ[R] M') (k₁ : N →ₗ[R] N') :
-    letI : Comodule R C (M ⊗[R] N) :=
-      trivialTensor (R := R) (C := C) (M := M) (N := N)
-    letI : Comodule R C (M' ⊗[R] N') :=
-      trivialTensor (R := R) (C := C) (M := M') (N := N')
-    letI : Comodule R C (M'' ⊗[R] N'') :=
-      trivialTensor (R := R) (C := C) (M := M'') (N := N'')
-    tensorTrivial (R := R) (C := C) (f₂.comp f₁) (k₂.comp k₁) =
-      comp (tensorTrivial (R := R) (C := C) f₂ k₂)
-        (tensorTrivial (R := R) (C := C) f₁ k₁) := by
-  letI : Comodule R C (M ⊗[R] N) :=
-    trivialTensor (R := R) (C := C) (M := M) (N := N)
-  letI : Comodule R C (M' ⊗[R] N') :=
-    trivialTensor (R := R) (C := C) (M := M') (N := N')
-  letI : Comodule R C (M'' ⊗[R] N'') :=
-    trivialTensor (R := R) (C := C) (M := M'') (N := N'')
-  ext t
-  simp [tensorTrivial, TensorProduct.map_comp]
-
-end Hom
-
-end TrivialTensor
 
 end Comodule
 
