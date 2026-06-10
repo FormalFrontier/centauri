@@ -28,8 +28,6 @@ material; once they exist, these lemmas are the coefficient-matrix facts used un
   `matrixBilinearForm_self`, `matrixBilinearForm_opNorm_le_of_upper_bound`,
   `UniformlyEllipticOn.isCoercive_matrixBilinearForm`, and
   `UniformlyEllipticOn.opNorm_matrixBilinearForm_le` after this rewrite.
-* `TauCeti.PDE.toSesqForm_toEuclideanCLM_one_apply`: the identity coefficient is the usual
-  inner product.
 -/
 
 namespace TauCeti
@@ -52,13 +50,6 @@ lemma toSesqForm_toEuclideanCLM_eq_matrixBilinearForm (A : Matrix n n ℝ) :
     (ContinuousLinearMap.toSesqForm (Matrix.toEuclideanCLM (𝕜 := ℝ) A) η) ξ =
         η ⬝ᵥ (A *ᵥ ξ) := Matrix.inner_toEuclideanCLM A η ξ
     _ = matrixBilinearForm A η ξ := (matrixBilinearForm_apply A η ξ).symm
-
-/-- The identity coefficient's pointwise energy form is the real inner product. -/
-@[simp]
-lemma toSesqForm_toEuclideanCLM_one_apply (η ξ : EuclideanSpace ℝ n) :
-    (ContinuousLinearMap.toSesqForm (Matrix.toEuclideanCLM (𝕜 := ℝ) (1 : Matrix n n ℝ)) η)
-      ξ = inner ℝ η ξ := by
-  simp [EuclideanSpace.inner_eq_star_dotProduct, dotProduct_comm]
 
 end
 
