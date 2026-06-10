@@ -195,6 +195,53 @@ theorem transportHom_apply (eM : M ≃ₗ[R] N) (eN : M' ≃ₗ[R] N') (f : Hom 
       eN (f (eM.symm n)) :=
   rfl
 
+/-- Transporting the identity morphism gives the identity morphism. -/
+@[simp]
+theorem transportHom_id (e : M ≃ₗ[R] N) :
+    letI : Comodule R C N := Transport (R := R) (C := C) (M := M) (N := N) e
+    transportHom (R := R) (C := C) (M := M) (M' := M) (N := N) (N' := N) e e
+        (Comodule.Hom.id R C M) =
+      Comodule.Hom.id R C N :=
+  by
+    letI : Comodule R C N := Transport (R := R) (C := C) (M := M) (N := N) e
+    ext n
+    change e ((Comodule.Hom.id R C M) (e.symm n)) = (Comodule.Hom.id R C N) n
+    rw [Comodule.Hom.id_apply, Comodule.Hom.id_apply]
+    exact e.apply_symm_apply n
+
+variable {P : Type*} {P' : Type*}
+variable [AddCommMonoid P] [Module R P] [Comodule R C P]
+variable [AddCommMonoid P'] [Module R P']
+
+/-- Transporting morphisms preserves composition. -/
+@[simp]
+theorem transportHom_comp (eM : M ≃ₗ[R] N) (eM' : M' ≃ₗ[R] N') (eP : P ≃ₗ[R] P')
+    (f : Hom R C M M') (g : Hom R C M' P) :
+    letI : Comodule R C N := Transport (R := R) (C := C) (M := M) (N := N) eM
+    letI : Comodule R C N' := Transport (R := R) (C := C) (M := M') (N := N') eM'
+    letI : Comodule R C P' := Transport (R := R) (C := C) (M := P) (N := P') eP
+    transportHom (R := R) (C := C) (M := M) (M' := P) (N := N) (N' := P') eM eP
+        (Comodule.Hom.comp g f) =
+      Comodule.Hom.comp
+        (transportHom (R := R) (C := C) (M := M') (M' := P) (N := N') (N' := P')
+          eM' eP g)
+        (transportHom (R := R) (C := C) (M := M) (M' := M') (N := N) (N' := N')
+          eM eM' f) :=
+  by
+    letI : Comodule R C N := Transport (R := R) (C := C) (M := M) (N := N) eM
+    letI : Comodule R C N' := Transport (R := R) (C := C) (M := M') (N := N') eM'
+    letI : Comodule R C P' := Transport (R := R) (C := C) (M := P) (N := P') eP
+    ext n
+    change eP ((Comodule.Hom.comp g f) (eM.symm n)) =
+      (Comodule.Hom.comp
+        (transportHom (R := R) (C := C) (M := M') (M' := P) (N := N') (N' := P')
+          eM' eP g)
+        (transportHom (R := R) (C := C) (M := M) (M' := M') (N := N) (N' := N')
+          eM eM' f)) n
+    rw [Comodule.Hom.comp_apply, Comodule.Hom.comp_apply]
+    rw [transportHom_apply, transportHom_apply]
+    simp
+
 /-- The forward morphism from a comodule to its transport along a linear equivalence. -/
 def transportToHom (e : M ≃ₗ[R] N) :
     letI : Comodule R C N := Transport (R := R) (C := C) (M := M) (N := N) e
