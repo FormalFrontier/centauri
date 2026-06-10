@@ -44,7 +44,7 @@ and Lax--Milgram arguments: constants are parameters, not hidden existential dat
   boundedness of the bilinear form attached to a uniformly elliptic coefficient field.
 * `TauCeti.PDE.uniformlyEllipticOn_smul_one`: scalar, isotropic coefficient fields are
   uniformly elliptic when their scalar coefficient lies between the ellipticity constants.
-* `TauCeti.PDE.UniformlyEllipticOn.add_nonnegative`: adding a nonnegative bounded
+* `TauCeti.PDE.UniformlyEllipticOn.add_nonneg`: adding a nonnegative bounded
   coefficient field preserves the lower ellipticity constant and adds upper constants.
 
 The vectors are `EuclideanSpace ℝ n`, matching the roadmap's bounded open subsets of
@@ -385,7 +385,7 @@ The lower ellipticity constant is unchanged, while the upper bilinear-form const
 increased by the upper bound for the perturbation. This is the pointwise matrix estimate
 used when an energy form is split into a uniformly elliptic principal part plus a
 nonnegative bounded perturbation. -/
-lemma add_nonnegative (h : UniformlyEllipticOn Ω a lam Lam) {b : X → Matrix n n ℝ}
+lemma add_nonneg (h : UniformlyEllipticOn Ω a lam Lam) {b : X → Matrix n n ℝ}
     {Mu : ℝ} (hMu : 0 ≤ Mu)
     (hb_nonneg : ∀ ⦃x⦄, x ∈ Ω → ∀ ξ : EuclideanSpace ℝ n,
       0 ≤ (b x).toQuadraticForm' ξ)
@@ -404,7 +404,7 @@ lemma add_smul_one (h : UniformlyEllipticOn Ω a lam Lam) {c : X → ℝ} {Mu : 
     (hMu : 0 ≤ Mu) (hc_nonneg : ∀ ⦃x⦄, x ∈ Ω → 0 ≤ c x)
     (hc_upper : ∀ ⦃x⦄, x ∈ Ω → c x ≤ Mu) :
     UniformlyEllipticOn Ω (fun x => a x + c x • (1 : Matrix n n ℝ)) lam (Lam + Mu) := by
-  refine h.add_nonnegative hMu (fun {x} hx ξ => ?_) (fun {x} hx η ξ => ?_)
+  refine h.add_nonneg hMu (fun {x} hx ξ => ?_) (fun {x} hx η ξ => ?_)
   · simp only [toQuadraticForm'_smul_one]
     exact mul_nonneg (hc_nonneg hx) (sq_nonneg ‖ξ‖)
   · have hcx_abs : |c x| ≤ Mu := by
