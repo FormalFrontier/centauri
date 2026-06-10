@@ -10,7 +10,8 @@ import TauCeti.Algebra.Coalgebra.Subcoalgebra
 # Subcoalgebras spanned by group-like elements
 
 This file defines the subcoalgebra spanned by a set of group-like elements, together with the
-singleton span and `Module.Finite` instances for the underlying submodules.
+singleton span, a finite-generation theorem for finite sets of group-like elements, and a
+`Module.Finite` instance for singleton spans.
 -/
 
 open scoped TensorProduct
