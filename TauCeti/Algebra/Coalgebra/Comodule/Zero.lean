@@ -2,8 +2,7 @@
 Copyright (c) 2026 The Tau Ceti contributors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
-import Mathlib.CategoryTheory.ObjectProperty.ContainsZero
-import TauCeti.Algebra.Coalgebra.Comodule.Finite
+import TauCeti.Algebra.Coalgebra.ComoduleCat
 
 /-!
 # The zero comodule
@@ -22,9 +21,7 @@ concrete carrier.
 
 * `TauCeti.ComoduleCat.zero`: the bundled zero comodule.
 * `TauCeti.ComoduleCat.isZero_zero`: `ComoduleCat.zero` is a zero object.
-* `TauCeti.FGComoduleCat.isZero_zero`: `FGComoduleCat.zero` is a zero object.
 * `HasZeroObject (ComoduleCat R C)`.
-* `HasZeroObject (FGComoduleCat R C)`.
 
 ## References
 
@@ -125,74 +122,6 @@ theorem hom_zero_ext {M : ComoduleCat.{u, v, w} R C} (f g : M ⟶ zero R C) : f 
 instance hasZeroObject : HasZeroObject (ComoduleCat.{u, v, w} R C) :=
   ⟨⟨zero R C, isZero_zero R C⟩⟩
 
-/-- The finite-generation property contains the zero comodule. -/
-instance isFG_containsZero : (isFG (R := R) (C := C)).ContainsZero where
-  exists_zero :=
-    ⟨zero R C, isZero_zero R C,
-      show Module.Finite R (zero R C) from by
-        rw [zero]
-        infer_instance⟩
-
 end ComoduleCat
-
-namespace FGComoduleCat
-
-variable (R : Type u) (C : Type v)
-variable [CommSemiring R]
-variable [AddCommMonoid C] [Module R C] [Coalgebra R C]
-
-/-- The bundled finitely generated zero right comodule. -/
-def zero : FGComoduleCat.{u, v, w} R C :=
-  ⟨ComoduleCat.zero R C, by
-    rw [ComoduleCat.zero]
-    exact show Module.Finite R (ComoduleCat.of R C PUnit.{w + 1}) from inferInstance⟩
-
-/-- The ambient comodule underlying the finitely generated zero comodule is the zero comodule. -/
-@[simp]
-theorem zero_obj :
-    (zero R C : FGComoduleCat.{u, v, w} R C).obj = ComoduleCat.zero R C :=
-  rfl
-
-/-- The named finitely generated zero comodule is a zero object. -/
-theorem isZero_zero : IsZero (zero R C : FGComoduleCat.{u, v, w} R C) :=
-  IsZero.of_full_of_faithful_of_isZero (ComoduleCat.isFG (R := R) (C := C)).ι (zero R C)
-    (ComoduleCat.isZero_zero R C)
-
-/-- Any morphism from the named finitely generated zero comodule is zero. -/
-theorem zero_hom_eq_zero (M : FGComoduleCat.{u, v, w} R C) (f : zero R C ⟶ M) : f = 0 :=
-  (isZero_zero (R := R) (C := C)).eq_of_src f 0
-
-/-- Any morphism to the named finitely generated zero comodule is zero. -/
-theorem hom_zero_eq_zero (M : FGComoduleCat.{u, v, w} R C) (f : M ⟶ zero R C) : f = 0 :=
-  (isZero_zero (R := R) (C := C)).eq_of_tgt f 0
-
-/-- The canonical morphism out of the named finitely generated zero comodule is the zero
-morphism. -/
-@[simp]
-theorem isZero_zero_to (M : FGComoduleCat.{u, v, w} R C) :
-    (isZero_zero (R := R) (C := C)).to_ M = 0 :=
-  zero_hom_eq_zero (R := R) (C := C) M _
-
-/-- The canonical morphism into the named finitely generated zero comodule is the zero morphism. -/
-@[simp]
-theorem isZero_zero_from (M : FGComoduleCat.{u, v, w} R C) :
-    (isZero_zero (R := R) (C := C)).from_ M = 0 :=
-  hom_zero_eq_zero (R := R) (C := C) M _
-
-/-- Morphisms from the named finitely generated zero comodule are unique. -/
-@[ext]
-theorem zero_hom_ext {M : FGComoduleCat.{u, v, w} R C} (f g : zero R C ⟶ M) : f = g :=
-  (isZero_zero (R := R) (C := C)).eq_of_src f g
-
-/-- Morphisms to the named finitely generated zero comodule are unique. -/
-@[ext]
-theorem hom_zero_ext {M : FGComoduleCat.{u, v, w} R C} (f g : M ⟶ zero R C) : f = g :=
-  (isZero_zero (R := R) (C := C)).eq_of_tgt f g
-
-/-- The category of finitely generated right comodules has a zero object. -/
-instance hasZeroObject : HasZeroObject (FGComoduleCat.{u, v, w} R C) :=
-  ⟨⟨zero R C, isZero_zero R C⟩⟩
-
-end FGComoduleCat
 
 end TauCeti
