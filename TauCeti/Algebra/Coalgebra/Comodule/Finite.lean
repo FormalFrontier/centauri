@@ -155,22 +155,6 @@ theorem ofHom_apply {M N : Type w} [AddCommMonoid M] [Module R M] [Comodule R C 
     ofHom (R := R) (C := C) f m = f m :=
   rfl
 
-/-- The standard forgetful functor from finitely generated comodules to all comodules is the full
-subcategory inclusion. -/
-@[simp]
-theorem forget₂_obj (M : FGComoduleCat.{u, v, w} R C) :
-    (forget₂ (FGComoduleCat.{u, v, w} R C) (ComoduleCat.{u, v, w} R C)).obj M =
-      M.obj :=
-  rfl
-
-/-- The standard forgetful functor from finitely generated comodules to all comodules sends
-morphisms to their ambient comodule morphisms. -/
-@[simp]
-theorem forget₂_map {M N : FGComoduleCat.{u, v, w} R C} (f : M ⟶ N) :
-    (forget₂ (FGComoduleCat.{u, v, w} R C) (ComoduleCat.{u, v, w} R C)).map f =
-      f.hom :=
-  rfl
-
 end FGComoduleCat
 
 end Semiring
