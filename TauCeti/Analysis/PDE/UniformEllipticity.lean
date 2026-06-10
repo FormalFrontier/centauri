@@ -144,7 +144,7 @@ lemma matrixBilinearForm_symmetricPart_apply (A : Matrix n n ℝ)
     matrixBilinearForm (TauCeti.Matrix.symmetricPart A) η ξ =
       (2⁻¹ : ℝ) * (matrixBilinearForm A η ξ + matrixBilinearForm A ξ η) := by
   rw [matrixBilinearForm_apply, matrixBilinearForm_apply, matrixBilinearForm_apply]
-  simp only [TauCeti.Matrix.symmetricPart, smul_mulVec, add_mulVec, dotProduct_smul,
+  simp only [TauCeti.Matrix.symmetricPart, invOf_eq_inv, smul_mulVec, add_mulVec, dotProduct_smul,
     dotProduct_add, smul_eq_mul, dotProduct_transpose_mulVec]
 
 /-- A pointwise bilinear upper bound gives the corresponding norm estimate for the bundled
