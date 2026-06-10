@@ -329,14 +329,6 @@ theorem forget₂_map {M N : ComoduleCat.{u, v, w} R C} (f : M ⟶ N) :
       SemimoduleCat.ofHom f.toLinearMap :=
   rfl
 
-/-- Build a categorical isomorphism of bundled comodules from inverse comodule morphisms. -/
-def isoOfHomInv {M N : ComoduleCat.{u, v, w} R C} (f : M ⟶ N) (g : N ⟶ M)
-    (hfg : f ≫ g = 𝟙 M) (hgf : g ≫ f = 𝟙 N) : M ≅ N where
-  hom := f
-  inv := g
-  hom_inv_id := hfg
-  inv_hom_id := hgf
-
 /-- A categorical isomorphism of comodules induces the underlying linear equivalence. -/
 def isoToLinearEquiv {M N : ComoduleCat.{u, v, w} R C} (i : M ≅ N) : M ≃ₗ[R] N :=
   ((forget₂ (ComoduleCat.{u, v, w} R C) (SemimoduleCat.{w} R)).mapIso i).toLinearEquivₛ
@@ -396,65 +388,70 @@ theorem isoToLinearEquiv_trans {M N P : ComoduleCat.{u, v, w} R C} (i : M ≅ N)
   ext m
   rfl
 
-/-- Build a comodule isomorphism from a linear equivalence whose forward and inverse maps
-respect the coactions. -/
+/-- Build a comodule isomorphism from a linear equivalence whose forward map respects the
+coactions. -/
 def isoOfLinearEquiv {M N : ComoduleCat.{u, v, w} R C} (e : M ≃ₗ[R] N)
     (h : TensorProduct.map e.toLinearMap LinearMap.id ∘ₗ
         Comodule.coact (R := R) (C := C) (M := M) =
       Comodule.coact (R := R) (C := C) (M := N) ∘ₗ e.toLinearMap)
-    (hinv : TensorProduct.map e.symm.toLinearMap LinearMap.id ∘ₗ
-        Comodule.coact (R := R) (C := C) (M := N) =
-      Comodule.coact (R := R) (C := C) (M := M) ∘ₗ e.symm.toLinearMap) :
-    M ≅ N :=
-  isoOfHomInv (R := R) (C := C)
+    : M ≅ N where
+  hom :=
     { toLinearMap := e.toLinearMap
       map_coact := h }
+  inv :=
     { toLinearMap := e.symm.toLinearMap
-      map_coact := hinv }
-    (by
+      map_coact := by
+        ext n
+        have hn : TensorProduct.map e.toLinearMap LinearMap.id
+              (Comodule.coact (R := R) (C := C) (M := M) (e.symm n)) =
+            Comodule.coact (R := R) (C := C) (M := N) n := by
+          simpa using LinearMap.congr_fun h (e.symm n)
+        have hn' := congrArg (TensorProduct.map e.symm.toLinearMap LinearMap.id) hn
+        simpa [TensorProduct.map_map] using hn'.symm }
+  hom_inv_id := by
       ext m
-      exact e.symm_apply_apply m)
-    (by
+      exact e.symm_apply_apply m
+  inv_hom_id := by
       ext n
-      exact e.apply_symm_apply n)
+      exact e.apply_symm_apply n
 
 /-- The forward morphism of `isoOfLinearEquiv` has the original linear equivalence
 underneath. -/
 @[simp]
 theorem isoOfLinearEquiv_hom_toLinearMap {M N : ComoduleCat.{u, v, w} R C}
-    (e : M ≃ₗ[R] N) (h hinv) :
-    ((isoOfLinearEquiv (R := R) (C := C) e h hinv).hom).toLinearMap = e.toLinearMap :=
+    (e : M ≃ₗ[R] N) (h) :
+    ((isoOfLinearEquiv (R := R) (C := C) e h).hom).toLinearMap = e.toLinearMap :=
   rfl
 
 /-- The inverse morphism of `isoOfLinearEquiv` has the inverse linear equivalence
 underneath. -/
 @[simp]
 theorem isoOfLinearEquiv_inv_toLinearMap {M N : ComoduleCat.{u, v, w} R C}
-    (e : M ≃ₗ[R] N) (h hinv) :
-    ((isoOfLinearEquiv (R := R) (C := C) e h hinv).inv).toLinearMap =
+    (e : M ≃ₗ[R] N) (h) :
+    ((isoOfLinearEquiv (R := R) (C := C) e h).inv).toLinearMap =
       e.symm.toLinearMap :=
   rfl
 
 /-- The forward morphism of `isoOfLinearEquiv` applies as the original linear equivalence. -/
 @[simp]
 theorem isoOfLinearEquiv_hom_apply {M N : ComoduleCat.{u, v, w} R C}
-    (e : M ≃ₗ[R] N) (h hinv) (m : M) :
-    (isoOfLinearEquiv (R := R) (C := C) e h hinv).hom m = e m :=
+    (e : M ≃ₗ[R] N) (h) (m : M) :
+    (isoOfLinearEquiv (R := R) (C := C) e h).hom m = e m :=
   rfl
 
 /-- The inverse morphism of `isoOfLinearEquiv` applies as the inverse linear equivalence. -/
 @[simp]
 theorem isoOfLinearEquiv_inv_apply {M N : ComoduleCat.{u, v, w} R C}
-    (e : M ≃ₗ[R] N) (h hinv) (n : N) :
-    (isoOfLinearEquiv (R := R) (C := C) e h hinv).inv n = e.symm n :=
+    (e : M ≃ₗ[R] N) (h) (n : N) :
+    (isoOfLinearEquiv (R := R) (C := C) e h).inv n = e.symm n :=
   rfl
 
 /-- Converting `isoOfLinearEquiv` back to a linear equivalence recovers the original linear
 equivalence. -/
 @[simp]
 theorem isoToLinearEquiv_isoOfLinearEquiv {M N : ComoduleCat.{u, v, w} R C}
-    (e : M ≃ₗ[R] N) (h hinv) :
-    isoToLinearEquiv (R := R) (C := C) (isoOfLinearEquiv (R := R) (C := C) e h hinv) =
+    (e : M ≃ₗ[R] N) (h) :
+    isoToLinearEquiv (R := R) (C := C) (isoOfLinearEquiv (R := R) (C := C) e h) =
       e := by
   ext m
   rfl
