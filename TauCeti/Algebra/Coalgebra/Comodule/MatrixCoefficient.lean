@@ -2,6 +2,7 @@
 Copyright (c) 2026 The Tau Ceti contributors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
+import TauCeti.Algebra.Coalgebra.Comodule.Hom
 import TauCeti.Algebra.Coalgebra.Comodule.Trivial
 
 /-!
@@ -64,11 +65,17 @@ theorem matrixCoefficientLinear_apply (φ : M →ₗ[R] R) (m : M) :
   rfl
 
 /-- Matrix coefficients are obtained by applying `φ ⊗ id` to the coaction. -/
-theorem matrixCoefficient_eq_lid_map_coact (φ : M →ₗ[R] R) (m : M) :
+theorem matrixCoefficient_def (φ : M →ₗ[R] R) (m : M) :
     matrixCoefficient (R := R) (C := C) φ m =
       TensorProduct.lid R C
         (TensorProduct.map φ LinearMap.id (coact (R := R) (C := C) (M := M) m)) :=
   rfl
+
+theorem matrixCoefficient_eq_lid_map_coact (φ : M →ₗ[R] R) (m : M) :
+    matrixCoefficient (R := R) (C := C) φ m =
+      TensorProduct.lid R C
+        (TensorProduct.map φ LinearMap.id (coact (R := R) (C := C) (M := M) m)) :=
+  matrixCoefficient_def (R := R) (C := C) φ m
 
 @[simp]
 theorem matrixCoefficient_zero (φ : M →ₗ[R] R) :
