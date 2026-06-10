@@ -21,9 +21,14 @@ reconstruction should be built on this full subcategory rather than on all comod
 
 * `TauCeti.ComoduleCat.isFG`: the finite-generation object property on `ComoduleCat`.
 * `TauCeti.FGComoduleCat`: finitely generated right comodules as a full subcategory.
+* `TauCeti.FGComoduleCat.incl`: the inclusion into all comodules.
+* `forget₂ (FGComoduleCat R C) (ComoduleCat R C)`: the forgetful functor to all comodules.
+* `forget₂ (FGComoduleCat R C) (SemimoduleCat R)`: the forgetful functor to semimodules.
 * `TauCeti.FGComoduleCat.of`: build a finitely generated bundled comodule from unbundled data.
 * `TauCeti.FGComoduleCat.ofHom`: lift an unbundled comodule morphism between finitely generated
   comodules.
+* `TauCeti.FGComoduleCat.isoToLinearEquiv`: the underlying linear equivalence of an
+  isomorphism of finitely generated comodules.
 * `TauCeti.FGComoduleCat.isZero_zero`: `FGComoduleCat.zero` is a zero object.
 * `HasZeroObject (FGComoduleCat R C)`.
 
@@ -102,6 +107,63 @@ instance (M : FGComoduleCat.{u, v, w} R C) : Comodule R C M :=
 instance (M : FGComoduleCat.{u, v, w} R C) : Module.Finite R M :=
   M.property
 
+/-- The inclusion from finitely generated comodules to all comodules. -/
+abbrev incl : FGComoduleCat.{u, v, w} R C ⥤ ComoduleCat.{u, v, w} R C :=
+  (ComoduleCat.isFG (R := R) (C := C)).ι
+
+/-- The inclusion sends a finitely generated comodule to its ambient comodule. -/
+@[simp]
+theorem incl_obj (M : FGComoduleCat.{u, v, w} R C) :
+    (incl (R := R) (C := C)).obj M = M.obj :=
+  rfl
+
+/-- The inclusion sends a morphism to its ambient comodule morphism. -/
+@[simp]
+theorem incl_map {M N : FGComoduleCat.{u, v, w} R C} (f : M ⟶ N) :
+    (incl (R := R) (C := C)).map f = f.hom :=
+  rfl
+
+/-- Forget a finitely generated comodule to its ambient comodule. -/
+instance hasForgetToComoduleCat :
+    HasForget₂ (FGComoduleCat.{u, v, w} R C) (ComoduleCat.{u, v, w} R C) where
+  forget₂ := incl (R := R) (C := C)
+
+/-- Forget a finitely generated comodule to its underlying semimodule. -/
+instance hasForgetToSemimoduleCat :
+    HasForget₂ (FGComoduleCat.{u, v, w} R C) (SemimoduleCat.{w} R) where
+  forget₂ :=
+    incl (R := R) (C := C) ⋙
+      forget₂ (ComoduleCat.{u, v, w} R C) (SemimoduleCat.{w} R)
+
+/-- Forgetting a finitely generated comodule to `ComoduleCat` gives its ambient object. -/
+@[simp]
+theorem forget₂ComoduleCat_obj (M : FGComoduleCat.{u, v, w} R C) :
+    (forget₂ (FGComoduleCat.{u, v, w} R C) (ComoduleCat.{u, v, w} R C)).obj M = M.obj :=
+  rfl
+
+/-- Forgetting a finitely generated comodule morphism to `ComoduleCat` gives its ambient
+comodule morphism. -/
+@[simp]
+theorem forget₂ComoduleCat_map {M N : FGComoduleCat.{u, v, w} R C} (f : M ⟶ N) :
+    (forget₂ (FGComoduleCat.{u, v, w} R C) (ComoduleCat.{u, v, w} R C)).map f = f.hom :=
+  rfl
+
+/-- Forgetting a finitely generated comodule to semimodules agrees with forgetting its ambient
+comodule. -/
+@[simp]
+theorem forget₂SemimoduleCat_obj (M : FGComoduleCat.{u, v, w} R C) :
+    (forget₂ (FGComoduleCat.{u, v, w} R C) (SemimoduleCat.{w} R)).obj M =
+      (forget₂ (ComoduleCat.{u, v, w} R C) (SemimoduleCat.{w} R)).obj M.obj :=
+  rfl
+
+/-- Forgetting a finitely generated comodule morphism to semimodules agrees with forgetting its
+ambient comodule morphism. -/
+@[simp]
+theorem forget₂SemimoduleCat_map {M N : FGComoduleCat.{u, v, w} R C} (f : M ⟶ N) :
+    (forget₂ (FGComoduleCat.{u, v, w} R C) (SemimoduleCat.{w} R)).map f =
+      (forget₂ (ComoduleCat.{u, v, w} R C) (SemimoduleCat.{w} R)).map f.hom :=
+  rfl
+
 /-- Lift an unbundled finitely generated right comodule to `FGComoduleCat`. -/
 abbrev of (M : Type w) [AddCommMonoid M] [Module R M] [Comodule R C M]
     [Module.Finite R M] : FGComoduleCat.{u, v, w} R C :=
@@ -164,6 +226,68 @@ theorem ofHom_apply {M N : Type w} [AddCommMonoid M] [Module R M] [Comodule R C 
     [Module.Finite R M] [AddCommMonoid N] [Module R N] [Comodule R C N]
     [Module.Finite R N] (f : Comodule.Hom R C M N) (m : M) :
     ofHom (R := R) (C := C) f m = f m :=
+  rfl
+
+/-- A categorical isomorphism of finitely generated comodules induces the underlying linear
+equivalence. -/
+def isoToLinearEquiv {M N : FGComoduleCat.{u, v, w} R C} (i : M ≅ N) : M ≃ₗ[R] N :=
+  ComoduleCat.isoToLinearEquiv (R := R) (C := C) ((incl (R := R) (C := C)).mapIso i)
+
+/-- The linear equivalence induced by an isomorphism of finitely generated comodules has the
+isomorphism's forward morphism underneath. -/
+@[simp]
+theorem isoToLinearEquiv_toLinearMap {M N : FGComoduleCat.{u, v, w} R C} (i : M ≅ N) :
+    (isoToLinearEquiv (R := R) (C := C) i).toLinearMap = i.hom.hom.toLinearMap :=
+  rfl
+
+/-- The inverse of the linear equivalence induced by an isomorphism of finitely generated
+comodules has the isomorphism's inverse morphism underneath. -/
+@[simp]
+theorem isoToLinearEquiv_symm_toLinearMap {M N : FGComoduleCat.{u, v, w} R C} (i : M ≅ N) :
+    (isoToLinearEquiv (R := R) (C := C) i).symm.toLinearMap = i.inv.hom.toLinearMap :=
+  rfl
+
+/-- The linear equivalence induced by an isomorphism of finitely generated comodules applies
+as the forward morphism. -/
+@[simp]
+theorem isoToLinearEquiv_apply {M N : FGComoduleCat.{u, v, w} R C} (i : M ≅ N) (m : M) :
+    isoToLinearEquiv (R := R) (C := C) i m = i.hom m :=
+  rfl
+
+/-- The inverse linear equivalence induced by an isomorphism of finitely generated comodules
+applies as the inverse morphism. -/
+@[simp]
+theorem isoToLinearEquiv_symm_apply {M N : FGComoduleCat.{u, v, w} R C} (i : M ≅ N)
+    (n : N) :
+    (isoToLinearEquiv (R := R) (C := C) i).symm n = i.inv n :=
+  rfl
+
+/-- The linear equivalence induced by the identity finitely generated comodule isomorphism is
+the identity. -/
+@[simp]
+theorem isoToLinearEquiv_refl (M : FGComoduleCat.{u, v, w} R C) :
+    isoToLinearEquiv (R := R) (C := C) (Iso.refl M) = LinearEquiv.refl R M := by
+  ext m
+  rfl
+
+/-- The linear equivalence induced by the inverse finitely generated comodule isomorphism is
+the inverse linear equivalence. -/
+@[simp]
+theorem isoToLinearEquiv_symm {M N : FGComoduleCat.{u, v, w} R C} (i : M ≅ N) :
+    isoToLinearEquiv (R := R) (C := C) i.symm =
+      (isoToLinearEquiv (R := R) (C := C) i).symm := by
+  ext n
+  rfl
+
+/-- The linear equivalence induced by a composite finitely generated comodule isomorphism is
+the composite of the induced linear equivalences. -/
+@[simp]
+theorem isoToLinearEquiv_trans {M N P : FGComoduleCat.{u, v, w} R C} (i : M ≅ N)
+    (j : N ≅ P) :
+    isoToLinearEquiv (R := R) (C := C) (i ≪≫ j) =
+      (isoToLinearEquiv (R := R) (C := C) i).trans
+        (isoToLinearEquiv (R := R) (C := C) j) := by
+  ext m
   rfl
 
 variable (R C)
