@@ -12,6 +12,11 @@ import TauCeti.Algebra.Coalgebra.Subcoalgebra
 This file defines the subcoalgebra spanned by a set of group-like elements, together with the
 singleton span, a finite-generation theorem for finite sets of group-like elements, and a
 `Module.Finite` instance for singleton spans.
+
+## References
+
+This file uses the `GroupLike` and `IsGroupLikeElem` API from
+`Mathlib.RingTheory.Coalgebra.GroupLike`, by Yaël Dillies and Michał Mrugała.
 -/
 
 open scoped TensorProduct
@@ -56,6 +61,8 @@ def groupLikeSetSpan (s : Set (GroupLike R C)) : Subcoalgebra R C :=
         rw [LinearMap.map_smul, hx']
         exact ((Coalgebra.comul (R := R) (A := C)).map_smul r x).symm }
 
+/-- The underlying submodule of the subcoalgebra spanned by a set of group-like elements is the
+linear span of their underlying elements. -/
 @[simp]
 theorem groupLikeSetSpan_toSubmodule (s : Set (GroupLike R C)) :
     (groupLikeSetSpan (R := R) (C := C) s).toSubmodule =
@@ -106,6 +113,8 @@ theorem groupLikeSpan_le {g : GroupLike R C} {D : Subcoalgebra R C} :
   rw [groupLikeSpan, groupLikeSetSpan_le]
   simp
 
+/-- The underlying submodule of the subcoalgebra spanned by one group-like element is the
+one-dimensional span `R ∙ (g : C)`. -/
 @[simp]
 theorem groupLikeSpan_toSubmodule (g : GroupLike R C) :
     (groupLikeSpan (R := R) (C := C) g).toSubmodule = R ∙ (g : C) := by
