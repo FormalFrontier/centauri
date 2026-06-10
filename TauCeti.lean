@@ -6,6 +6,7 @@
 import TauCeti.Algebra.AlgebraicGroup.CommHopfAlgCat
 import TauCeti.Algebra.Coalgebra.Comodule.Corestrict
 import TauCeti.Algebra.Coalgebra.Comodule.Hom
+import TauCeti.Algebra.Coalgebra.Comodule.MatrixCoefficient
 import TauCeti.Algebra.Coalgebra.Comodule.Preadditive
 import TauCeti.Algebra.Coalgebra.Comodule.Transport
 import TauCeti.Algebra.Coalgebra.Comodule.Trivial
