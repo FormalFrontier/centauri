@@ -118,13 +118,6 @@ lemma toSesqForm_toEuclideanCLM_one_isCoercive :
   toSesqForm_toEuclideanCLM_isCoercive_of_lower_bound (1 : Matrix n n ℝ) zero_lt_one
     (fun ξ => by simp)
 
-/-- The identity matrix satisfies the raw dot-product upper bound with constant `1`. -/
-lemma dotProduct_one_mulVec_le_norm_mul_norm (η ξ : EuclideanSpace ℝ n) :
-    |η ⬝ᵥ ((1 : Matrix n n ℝ) *ᵥ ξ)| ≤ 1 * ‖η‖ * ‖ξ‖ := by
-  rw [one_mulVec, one_mul]
-  simpa [EuclideanSpace.inner_eq_star_dotProduct, dotProduct_comm] using
-    abs_real_inner_le_norm η ξ
-
 end
 
 end PDE
