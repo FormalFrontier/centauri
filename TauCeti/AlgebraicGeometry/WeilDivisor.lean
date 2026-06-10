@@ -107,6 +107,19 @@ lemma IsEffective.nsmul {D : WeilDivisor X} (hD : IsEffective D) (n : ℕ) :
   intro x
   simpa [IsEffective, coeff] using nsmul_nonneg (hD x) n
 
+lemma IsEffective.coeff_eq_zero_of_notMem_support {D : WeilDivisor X} (_ : IsEffective D)
+    {x : X} (hx : x ∉ D.support) : coeff D x = 0 :=
+  Finsupp.notMem_support_iff.mp hx
+
+lemma IsEffective.exists_pos_coeff_of_ne_zero {D : WeilDivisor X} (hD : IsEffective D)
+    (hD0 : D ≠ 0) : ∃ x, 0 < coeff D x := by
+  classical
+  by_contra h
+  push Not at h
+  apply hD0
+  ext x
+  exact le_antisymm (h x) (hD x)
+
 @[simp]
 lemma isEffective_ofPoint (x : X) : IsEffective (ofPoint x) := by
   intro y
@@ -217,6 +230,33 @@ lemma degree_pushforward (f : X → Y) (D : WeilDivisor X) :
     degree (pushforward f D) = degree D := by
   simp [degree, pushforward, Finsupp.degree_mapDomain]
 
+lemma IsEffective.degree_nonneg {D : WeilDivisor X} (hD : IsEffective D) :
+    0 ≤ degree D := by
+  rw [degree_apply]
+  exact Finset.sum_nonneg fun x _ => hD x
+
+lemma IsEffective.degree_eq_zero_iff {D : WeilDivisor X} (hD : IsEffective D) :
+    degree D = 0 ↔ D = 0 := by
+  constructor
+  · intro hdeg
+    ext x
+    by_contra hx
+    have hxpos : 0 < coeff D x := lt_of_le_of_ne (hD x) (Ne.symm hx)
+    have hsum_pos : 0 < ∑ y ∈ D.support, D y := by
+      exact Finset.sum_pos' (fun y _ => hD y) ⟨x, Finsupp.mem_support_iff.mpr hx, hxpos⟩
+    rw [← degree_apply] at hsum_pos
+    exact (ne_of_gt hsum_pos) hdeg
+  · intro h
+    simp [h]
+
+lemma IsEffective.eq_zero_of_degree_eq_zero {D : WeilDivisor X} (hD : IsEffective D)
+    (hdeg : degree D = 0) : D = 0 :=
+  (hD.degree_eq_zero_iff).mp hdeg
+
+lemma IsEffective.degree_pos {D : WeilDivisor X} (hD : IsEffective D) (hD0 : D ≠ 0) :
+    0 < degree D := by
+  exact lt_of_le_of_ne hD.degree_nonneg fun h => hD0 ((hD.degree_eq_zero_iff).mp h.symm)
+
 /-- The weighted degree of a Weil divisor against an integer-valued weight on points.
 
 For a curve over `k`, the intended weight is `x ↦ [κ(x) : k]`. -/
@@ -255,6 +295,36 @@ lemma weightedDegree_pushforward (wY : Y → ℤ) (f : X → Y) (D : WeilDivisor
     weightedDegree wY (pushforward f D) = weightedDegree (wY ∘ f) D := by
   simp [weightedDegree, pushforward, Finsupp.linearCombination_mapDomain]
 
+lemma IsEffective.weightedDegree_nonneg {w : X → ℤ} (hw : ∀ x, 0 ≤ w x)
+    {D : WeilDivisor X} (hD : IsEffective D) : 0 ≤ weightedDegree w D := by
+  rw [weightedDegree_apply]
+  exact Finsupp.sum_nonneg fun x _ => mul_nonneg (hD x) (hw x)
+
+lemma IsEffective.weightedDegree_eq_zero_iff_of_pos {w : X → ℤ} (hw : ∀ x, 0 < w x)
+    {D : WeilDivisor X} (hD : IsEffective D) :
+    weightedDegree w D = 0 ↔ D = 0 := by
+  constructor
+  · intro hdeg
+    by_contra hD0
+    obtain ⟨x, hxpos⟩ := hD.exists_pos_coeff_of_ne_zero hD0
+    have hsum_pos : 0 < D.sum fun y n => n * w y := by
+      exact Finsupp.sum_pos' (fun y _ => mul_nonneg (hD y) (le_of_lt (hw y)))
+        ⟨x, Finsupp.mem_support_iff.mpr (ne_of_gt hxpos), mul_pos hxpos (hw x)⟩
+    rw [← weightedDegree_apply] at hsum_pos
+    exact (ne_of_gt hsum_pos) hdeg
+  · intro h
+    simp [h]
+
+lemma IsEffective.eq_zero_of_weightedDegree_eq_zero_of_pos {w : X → ℤ} (hw : ∀ x, 0 < w x)
+    {D : WeilDivisor X} (hD : IsEffective D) (hdeg : weightedDegree w D = 0) : D = 0 :=
+  (hD.weightedDegree_eq_zero_iff_of_pos hw).mp hdeg
+
+lemma IsEffective.weightedDegree_pos_of_pos {w : X → ℤ} (hw : ∀ x, 0 < w x)
+    {D : WeilDivisor X} (hD : IsEffective D) (hD0 : D ≠ 0) :
+    0 < weightedDegree w D := by
+  exact lt_of_le_of_ne (hD.weightedDegree_nonneg fun x => le_of_lt (hw x)) fun h =>
+    hD0 ((hD.weightedDegree_eq_zero_iff_of_pos hw).mp h.symm)
+
 @[simp]
 lemma weightedDegree_one_eq_degree (D : WeilDivisor X) :
     weightedDegree (fun _ : X => (1 : ℤ)) D = degree D := by
@@ -278,6 +348,10 @@ lemma mem_degreeZeroSubgroup (D : WeilDivisor X) :
 lemma degree_coe_degreeZeroSubgroup (D : degreeZeroSubgroup X) :
     degree (D : WeilDivisor X) = 0 :=
   D.property
+
+lemma isEffective_coe_degreeZeroSubgroup_eq_zero {D : degreeZeroSubgroup X}
+    (hD : IsEffective (D : WeilDivisor X)) : (D : WeilDivisor X) = 0 :=
+  hD.eq_zero_of_degree_eq_zero (degree_coe_degreeZeroSubgroup D)
 
 /-- The formal divisor `[x] - [y]`, a basic source of degree-zero divisors. -/
 noncomputable def pointDifference (x y : X) : WeilDivisor X :=
