@@ -15,15 +15,13 @@ than in the unbundled trivial-comodule API.
 ## Main definitions
 
 * `TauCeti.FGComoduleCat.trivial`: the finitely generated bundled trivial comodule on `R`.
-* `TauCeti.FGComoduleCat.trivialTensor`: the finitely generated bundled tensor product of
-  two trivial comodules, implemented as the existing trivial comodule on `M ⊗[R] N`.
 -/
 
 open scoped TensorProduct
 
 namespace TauCeti
 
-universe u v w x
+universe u v
 
 namespace FGComoduleCat
 
@@ -36,15 +34,18 @@ abbrev trivial : FGComoduleCat.{u, v, u} R C :=
   letI : Comodule R C R := Comodule.trivial (R := R) (C := C) (M := R)
   of (R := R) (C := C) R
 
-variable {R C}
-variable {M : Type w} {N : Type x}
-variable [AddCommMonoid M] [Module R M] [Module.Finite R M]
-variable [AddCommMonoid N] [Module R N] [Module.Finite R N]
+/-- The ambient bundled comodule underlying `FGComoduleCat.trivial`. -/
+@[simp]
+theorem trivial_obj : (trivial R C).obj = ComoduleCat.trivial R C :=
+  rfl
 
-/-- The finitely generated bundled tensor product of two trivial comodules. -/
-abbrev trivialTensor : FGComoduleCat.{u, v, max w x} R C :=
-  letI : Comodule R C (M ⊗[R] N) := Comodule.trivial (R := R) (C := C) (M := M ⊗[R] N)
-  of (R := R) (C := C) (M ⊗[R] N)
+/-- The coaction on `FGComoduleCat.trivial` sends `r` to `r ⊗ 1`. -/
+@[simp]
+theorem trivial_coact :
+    letI : Comodule R C R := Comodule.trivial (R := R) (C := C) (M := R)
+    Comodule.coact (R := R) (C := C) (M := (trivial R C).obj) =
+      (TensorProduct.mk R R C).flip (1 : C) :=
+  rfl
 
 end FGComoduleCat
 

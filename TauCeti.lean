@@ -12,7 +12,6 @@ import TauCeti.Algebra.Coalgebra.Comodule.Hom
 import TauCeti.Algebra.Coalgebra.Comodule.MatrixCoefficient
 import TauCeti.Algebra.Coalgebra.Comodule.MatrixCoefficientAdjoin
 import TauCeti.Algebra.Coalgebra.Comodule.Preadditive
-import TauCeti.Algebra.Coalgebra.Comodule.TensorTrivial
 import TauCeti.Algebra.Coalgebra.Comodule.Transport
 import TauCeti.Algebra.Coalgebra.Comodule.Trivial
 import TauCeti.Algebra.Coalgebra.ComoduleCat
