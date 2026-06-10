@@ -14,13 +14,16 @@ algebra": before the finite-dimensional comodule category can be used as the add
 representation category, it needs the standard zero object compatible with the existing zero
 morphisms.
 
-The zero comodule is the unique coaction on `PUnit`. We expose it both unbundled and bundled,
-and register zero-object instances for `ComoduleCat` and `FGComoduleCat`.
+The zero comodule is implemented by the unique coaction on `PUnit`. The bundled API exposes
+the named zero objects through their `IsZero` characterizations, rather than through the
+concrete carrier.
 
 ## Main declarations
 
 * `TauCeti.Comodule.instPUnit`: the zero right comodule on `PUnit`.
 * `TauCeti.ComoduleCat.zero`: the bundled zero comodule.
+* `TauCeti.ComoduleCat.isZero_zero`: `ComoduleCat.zero` is a zero object.
+* `TauCeti.FGComoduleCat.isZero_zero`: `FGComoduleCat.zero` is a zero object.
 * `HasZeroObject (ComoduleCat R C)`.
 * `HasZeroObject (FGComoduleCat R C)`.
 
@@ -70,19 +73,8 @@ variable [CommSemiring R]
 variable [AddCommMonoid C] [Module R C] [Coalgebra R C]
 
 /-- The bundled zero right comodule. -/
-abbrev zero : ComoduleCat.{u, v, w} R C :=
+def zero : ComoduleCat.{u, v, w} R C :=
   of R C PUnit.{w + 1}
-
-/-- The bundled zero comodule has carrier `PUnit`. -/
-@[simp]
-theorem zero_carrier : (zero R C : Type) = PUnit :=
-  rfl
-
-/-- The coaction on the bundled zero comodule is zero. -/
-@[simp]
-theorem zero_coact :
-    Comodule.coact (R := R) (C := C) (M := zero R C) = 0 :=
-  rfl
 
 /-- A comodule whose underlying type is subsingleton is a zero object. -/
 theorem isZero_of_subsingleton (M : ComoduleCat.{u, v, w} R C) [Subsingleton M] : IsZero M where
@@ -100,15 +92,52 @@ theorem isZero_of_subsingleton (M : ComoduleCat.{u, v, w} R C) [Subsingleton M] 
         ext m
         subsingleton }⟩
 
+/-- The named zero comodule is a zero object. -/
+theorem isZero_zero : IsZero (zero R C : ComoduleCat.{u, v, w} R C) := by
+  rw [zero]
+  exact isZero_of_subsingleton (R := R) (C := C) (of R C PUnit.{w + 1})
+
+/-- Any morphism from the named zero comodule is zero. -/
+theorem zero_hom_eq_zero (M : ComoduleCat.{u, v, w} R C) (f : zero R C ⟶ M) : f = 0 :=
+  (isZero_zero (R := R) (C := C)).eq_of_src f 0
+
+/-- Any morphism to the named zero comodule is zero. -/
+theorem hom_zero_eq_zero (M : ComoduleCat.{u, v, w} R C) (f : M ⟶ zero R C) : f = 0 :=
+  (isZero_zero (R := R) (C := C)).eq_of_tgt f 0
+
+/-- The canonical morphism out of the named zero comodule is the zero morphism. -/
+@[simp]
+theorem isZero_zero_to (M : ComoduleCat.{u, v, w} R C) :
+    (isZero_zero (R := R) (C := C)).to_ M = 0 :=
+  zero_hom_eq_zero (R := R) (C := C) M _
+
+/-- The canonical morphism into the named zero comodule is the zero morphism. -/
+@[simp]
+theorem isZero_zero_from (M : ComoduleCat.{u, v, w} R C) :
+    (isZero_zero (R := R) (C := C)).from_ M = 0 :=
+  hom_zero_eq_zero (R := R) (C := C) M _
+
+/-- Morphisms from the named zero comodule are unique. -/
+@[ext]
+theorem zero_hom_ext {M : ComoduleCat.{u, v, w} R C} (f g : zero R C ⟶ M) : f = g :=
+  (isZero_zero (R := R) (C := C)).eq_of_src f g
+
+/-- Morphisms to the named zero comodule are unique. -/
+@[ext]
+theorem hom_zero_ext {M : ComoduleCat.{u, v, w} R C} (f g : M ⟶ zero R C) : f = g :=
+  (isZero_zero (R := R) (C := C)).eq_of_tgt f g
+
 /-- The category of right comodules has a zero object. -/
 instance hasZeroObject : HasZeroObject (ComoduleCat.{u, v, w} R C) :=
-  ⟨⟨zero R C, isZero_of_subsingleton (R := R) (C := C) (zero R C)⟩⟩
+  ⟨⟨zero R C, isZero_zero R C⟩⟩
 
 /-- The finite-generation property contains the zero comodule. -/
 instance isFG_containsZero : (isFG (R := R) (C := C)).ContainsZero where
   exists_zero :=
-    ⟨zero R C, isZero_of_subsingleton (R := R) (C := C) (zero R C),
-      show Module.Finite R (zero R C) from inferInstance⟩
+    ⟨zero R C, isZero_zero R C,
+      show Module.Finite R (zero R C) from by
+        rw [zero]
+        infer_instance⟩
 
 end ComoduleCat
 
@@ -119,8 +148,10 @@ variable [CommSemiring R]
 variable [AddCommMonoid C] [Module R C] [Coalgebra R C]
 
 /-- The bundled finitely generated zero right comodule. -/
-abbrev zero : FGComoduleCat.{u, v, w} R C :=
-  ⟨ComoduleCat.zero R C, show Module.Finite R (ComoduleCat.zero R C) from inferInstance⟩
+def zero : FGComoduleCat.{u, v, w} R C :=
+  ⟨ComoduleCat.zero R C, by
+    rw [ComoduleCat.zero]
+    exact show Module.Finite R (ComoduleCat.of R C PUnit.{w + 1}) from inferInstance⟩
 
 /-- The ambient comodule underlying the finitely generated zero comodule is the zero comodule. -/
 @[simp]
@@ -128,9 +159,45 @@ theorem zero_obj :
     (zero R C : FGComoduleCat.{u, v, w} R C).obj = ComoduleCat.zero R C :=
   rfl
 
+/-- The named finitely generated zero comodule is a zero object. -/
+theorem isZero_zero : IsZero (zero R C : FGComoduleCat.{u, v, w} R C) :=
+  IsZero.of_full_of_faithful_of_isZero (ComoduleCat.isFG (R := R) (C := C)).ι (zero R C)
+    (ComoduleCat.isZero_zero R C)
+
+/-- Any morphism from the named finitely generated zero comodule is zero. -/
+theorem zero_hom_eq_zero (M : FGComoduleCat.{u, v, w} R C) (f : zero R C ⟶ M) : f = 0 :=
+  (isZero_zero (R := R) (C := C)).eq_of_src f 0
+
+/-- Any morphism to the named finitely generated zero comodule is zero. -/
+theorem hom_zero_eq_zero (M : FGComoduleCat.{u, v, w} R C) (f : M ⟶ zero R C) : f = 0 :=
+  (isZero_zero (R := R) (C := C)).eq_of_tgt f 0
+
+/-- The canonical morphism out of the named finitely generated zero comodule is the zero
+morphism. -/
+@[simp]
+theorem isZero_zero_to (M : FGComoduleCat.{u, v, w} R C) :
+    (isZero_zero (R := R) (C := C)).to_ M = 0 :=
+  zero_hom_eq_zero (R := R) (C := C) M _
+
+/-- The canonical morphism into the named finitely generated zero comodule is the zero morphism. -/
+@[simp]
+theorem isZero_zero_from (M : FGComoduleCat.{u, v, w} R C) :
+    (isZero_zero (R := R) (C := C)).from_ M = 0 :=
+  hom_zero_eq_zero (R := R) (C := C) M _
+
+/-- Morphisms from the named finitely generated zero comodule are unique. -/
+@[ext]
+theorem zero_hom_ext {M : FGComoduleCat.{u, v, w} R C} (f g : zero R C ⟶ M) : f = g :=
+  (isZero_zero (R := R) (C := C)).eq_of_src f g
+
+/-- Morphisms to the named finitely generated zero comodule are unique. -/
+@[ext]
+theorem hom_zero_ext {M : FGComoduleCat.{u, v, w} R C} (f g : M ⟶ zero R C) : f = g :=
+  (isZero_zero (R := R) (C := C)).eq_of_tgt f g
+
 /-- The category of finitely generated right comodules has a zero object. -/
 instance hasZeroObject : HasZeroObject (FGComoduleCat.{u, v, w} R C) :=
-  inferInstance
+  ⟨⟨zero R C, isZero_zero R C⟩⟩
 
 end FGComoduleCat
 
