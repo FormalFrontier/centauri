@@ -29,6 +29,8 @@ material; once they exist, these lemmas are the coefficient-matrix facts used un
   ellipticity at a point gives coercivity of the corresponding pointwise energy form.
 * `TauCeti.PDE.norm_toSesqForm_toEuclideanCLM_le_of_uniformlyEllipticOn`: uniform
   ellipticity gives the pointwise operator-norm upper bound.
+* `TauCeti.PDE.toSesqForm_toEuclideanCLM_self`: the quadratic part of Mathlib's matrix
+  sesquilinear form is the matrix quadratic form.
 * `TauCeti.PDE.toSesqForm_toEuclideanCLM_one_apply`: the identity coefficient is the usual
   inner product.
 -/
@@ -58,6 +60,14 @@ lemma toSesqForm_toEuclideanCLM_eq_matrixBilinearForm (A : Matrix n n ℝ) :
   ext η ξ
   rw [toSesqForm_toEuclideanCLM_apply]
   exact (matrixBilinearForm_apply A η ξ).symm
+
+/-- The quadratic part of Mathlib's matrix sesquilinear form is the matrix quadratic form. -/
+@[simp]
+lemma toSesqForm_toEuclideanCLM_self (A : Matrix n n ℝ) (ξ : EuclideanSpace ℝ n) :
+    (ContinuousLinearMap.toSesqForm (Matrix.toEuclideanCLM (𝕜 := ℝ) A) ξ) ξ =
+      A.toQuadraticForm' ξ := by
+  rw [toSesqForm_toEuclideanCLM_eq_matrixBilinearForm]
+  exact matrixBilinearForm_self A ξ
 
 /-- The operator norm of Mathlib's matrix sesquilinear form is controlled by the supplied
 upper bound. -/
