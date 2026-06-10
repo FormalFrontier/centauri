@@ -156,6 +156,17 @@ variable {M' : Type y} {N' : Type z}
 variable [AddCommMonoid M'] [Module R M'] [Comodule R C M']
 variable [AddCommMonoid N'] [Module R N']
 
+omit [Coalgebra R C] [Comodule R C M] [Comodule R C M'] in
+private theorem tensor_map_transport_conj (eM : M ≃ₗ[R] N) (eN : M' ≃ₗ[R] N')
+    (f : M →ₗ[R] M') (t : M ⊗[R] C) :
+    TensorProduct.map (eN.toLinearMap.comp (f.comp eM.symm.toLinearMap)) LinearMap.id
+        (TensorProduct.map eM.toLinearMap LinearMap.id t) =
+      TensorProduct.map eN.toLinearMap LinearMap.id (TensorProduct.map f LinearMap.id t) := by
+  rw [TensorProduct.map_map, TensorProduct.map_map]
+  congr
+  ext m
+  simp
+
 /-- Transport a comodule morphism across linear equivalences on source and target. -/
 def transportHom (eM : M ≃ₗ[R] N) (eN : M' ≃ₗ[R] N') (f : Hom R C M M') :
     letI : Comodule R C N := Transport (R := R) (C := C) (M := M) (N := N) eM
@@ -170,11 +181,8 @@ def transportHom (eM : M ≃ₗ[R] N) (eN : M' ≃ₗ[R] N') (f : Hom R C M M') 
         dsimp [Transport, transportCoact]
         simp only [LinearEquiv.symm_apply_apply]
         rw [← Hom.map_coact_apply f (eM.symm n)]
-        induction coact (R := R) (C := C) (M := M) (eM.symm n)
-          using TensorProduct.induction_on with
-        | zero => simp
-        | tmul m c => simp
-        | add x y hx hy => simp [hx, hy] }
+        exact tensor_map_transport_conj (R := R) (C := C) (M := M) (N := N) (M' := M')
+          (N' := N') eM eN f.toLinearMap (coact (R := R) (C := C) (M := M) (eM.symm n)) }
 
 /-- Transporting a morphism has the conjugated underlying linear map. -/
 @[simp]
@@ -252,11 +260,9 @@ def transportInvHom (e : M ≃ₗ[R] N) :
     map_coact := by
       ext n
       dsimp [transportCoact]
-      induction coact (R := R) (C := C) (M := M) (e.symm n)
-        using TensorProduct.induction_on with
-      | zero => simp
-      | tmul m c => simp
-      | add x y hx hy => simp [hx, hy] }
+      simpa using tensor_map_transport_conj (R := R) (C := C) (M := M) (N := N) (M' := M)
+        (N' := M) e (LinearEquiv.refl R M) (LinearMap.id (R := R) (M := M))
+        (coact (R := R) (C := C) (M := M) (e.symm n)) }
 
 /-- The forward transport morphism has the original linear equivalence underneath. -/
 @[simp]
