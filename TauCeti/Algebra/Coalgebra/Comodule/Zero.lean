@@ -20,7 +20,6 @@ concrete carrier.
 
 ## Main declarations
 
-* `TauCeti.Comodule.instPUnit`: the zero right comodule on `PUnit`.
 * `TauCeti.ComoduleCat.zero`: the bundled zero comodule.
 * `TauCeti.ComoduleCat.isZero_zero`: `ComoduleCat.zero` is a zero object.
 * `TauCeti.FGComoduleCat.isZero_zero`: `FGComoduleCat.zero` is a zero object.
@@ -50,7 +49,7 @@ variable [CommSemiring R]
 variable [AddCommMonoid C] [Module R C] [Coalgebra R C]
 
 /-- The unique right-comodule structure on the zero module `PUnit`. -/
-instance instPUnit : Comodule R C PUnit where
+private instance instPUnit : Comodule R C PUnit where
   coact := 0
   coassoc := by
     ext x
@@ -58,11 +57,6 @@ instance instPUnit : Comodule R C PUnit where
   lTensor_counit_comp_coact := by
     ext x
     exact Subsingleton.elim _ _
-
-/-- The coaction on the zero comodule is the zero linear map. -/
-@[simp]
-theorem punit_coact : coact (R := R) (C := C) (M := PUnit) = 0 :=
-  rfl
 
 end Comodule
 
