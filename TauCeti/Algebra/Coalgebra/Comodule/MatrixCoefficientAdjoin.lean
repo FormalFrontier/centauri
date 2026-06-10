@@ -32,24 +32,6 @@ coefficients generating the coordinate Hopf algebra.
 
 namespace TauCeti
 
-namespace Algebra
-
-universe u v
-
-variable {R : Type u} {A : Type v}
-
-variable [CommSemiring R] [Semiring A] [Algebra R A]
-
-/-- If a set linearly spans an algebra, then it generates the algebra as a subalgebra. -/
-theorem adjoin_eq_top_of_span_eq_top {s : Set A} (h : Submodule.span R s = ⊤) :
-    Algebra.adjoin R s = ⊤ := by
-  rw [← Algebra.toSubmodule_eq_top]
-  exact top_le_iff.mp <| by
-    rw [← h]
-    exact Algebra.span_le_adjoin R s
-
-end Algebra
-
 namespace Comodule
 
 universe u v w
@@ -174,8 +156,11 @@ theorem matrixCoefficientSubalgebra_le_iff {S : Subalgebra R C} :
 algebra. -/
 theorem matrixCoefficientSubalgebra_eq_top_of_submodule_eq_top
     (h : matrixCoefficientSubmodule (R := R) (C := C) (M := M) = ⊤) :
-    matrixCoefficientSubalgebra (R := R) (C := C) (M := M) = ⊤ :=
-  TauCeti.Algebra.adjoin_eq_top_of_span_eq_top h
+    matrixCoefficientSubalgebra (R := R) (C := C) (M := M) = ⊤ := by
+  rw [matrixCoefficientSubalgebra, ← Algebra.toSubmodule_eq_top]
+  exact top_le_iff.mp <| by
+    rw [← h, matrixCoefficientSubmodule]
+    exact Algebra.span_le_adjoin R (matrixCoefficientSet (R := R) (C := C) (M := M))
 
 end Algebra
 
