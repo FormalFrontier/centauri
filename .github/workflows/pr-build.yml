@@ -69,6 +69,28 @@ jobs:
             echo "::warning::PR changes paths outside TauCeti/ (infra) — not sandbox-built; needs human review"
           fi
 
+      - name: Diff size guard — additions, deletions, and changed files each ≤ 2000 (trusted GitHub PR totals)
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          # The file-count cap also backstops the scope guard above: the PR files API lists at
+          # most 3000 files, so a huge PR could hide an out-of-scope path from that listing.
+          # Failing here at 2000 files closes that gap before the API limit is reachable.
+          read -r adds dels files < <(gh api "repos/${{ github.repository }}/pulls/${{ steps.pr.outputs.num }}" \
+            --jq '"\(.additions) \(.deletions) \(.changed_files)"')
+          echo "diff size: +$adds / -$dels across $files files (cap: 2000 each)"
+          # Fail closed on non-numeric data: [ -gt ] errors on garbage but an `if` would
+          # swallow that as false, silently passing the guard.
+          if ! [[ "$adds" =~ ^[0-9]+$ && "$dels" =~ ^[0-9]+$ && "$files" =~ ^[0-9]+$ ]]; then
+            echo "DIFF_UNKNOWN=1" >> "$GITHUB_ENV"
+            echo "::error::could not read the PR's diff totals from the GitHub API (+$adds / -$dels / $files files); failing closed"
+            exit 1
+          fi
+          if [ "$adds" -gt 2000 ] || [ "$dels" -gt 2000 ] || [ "$files" -gt 2000 ]; then
+            echo "TOO_LARGE=1" >> "$GITHUB_ENV"
+            echo "::error::This PR is too large to review: +$adds / -$dels lines across $files files (cap: 2000 added lines, 2000 removed lines, 2000 files). We cap diff size to keep review manageable — reviewers, AI and human alike, do far better work on small, focused PRs. Please split this into smaller PRs, one topic each. We are open to raising the cap once there is evidence that review is working well at the current size."
+            exit 1
+          fi
+
       - name: Checkout base (trusted)
         if: ${{ env.INFRA != '1' }}
         uses: actions/checkout@v4
@@ -163,6 +185,10 @@ jobs:
         run: |
           if [ "${{ env.INFRA }}" = "1" ]; then
             state=failure; desc="changes outside TauCeti/ — human review + merge required"
+          elif [ "${{ env.TOO_LARGE }}" = "1" ]; then
+            state=failure; desc="diff exceeds 2000 added/removed lines or 2000 files — split into smaller PRs to keep review manageable"
+          elif [ "${{ env.DIFF_UNKNOWN }}" = "1" ]; then
+            state=failure; desc="could not read PR diff totals from the GitHub API — re-run pr-build"
           elif [ "${{ steps.build.outcome }}" = "success" ]; then
             state=success; desc="sandboxed build + axiom audit passed (trusted config)"
           else
