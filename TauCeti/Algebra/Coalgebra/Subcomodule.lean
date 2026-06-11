@@ -262,11 +262,56 @@ theorem map_mono (f : Comodule.Hom R C M N) {A B : Subcomodule R C M} (hAB : A �
   rcases (mem_map (A := A) (f := f)).1 hn with ⟨m, hm, rfl⟩
   exact mem_map_of_mem f (hAB hm)
 
+/-- The image of the bottom subcomodule is bottom. -/
+@[simp]
+theorem map_bot (f : Comodule.Hom R C M N) : (⊥ : Subcomodule R C M).map f = ⊥ := by
+  ext n
+  rw [mem_map, mem_bot]
+  constructor
+  · rintro ⟨m, hm, rfl⟩
+    rw [mem_bot] at hm
+    rw [hm]
+    exact f.toLinearMap.map_zero
+  · intro hn
+    refine ⟨0, by rw [mem_bot], ?_⟩
+    rw [hn]
+    exact f.toLinearMap.map_zero
+
 /-- The image of the top subcomodule is the range of the comodule morphism as a submodule. -/
 @[simp]
 theorem map_top_toSubmodule (f : Comodule.Hom R C M N) :
     ((⊤ : Subcomodule R C M).map f).toSubmodule = LinearMap.range f.toLinearMap := by
   rw [map_toSubmodule, top_toSubmodule, Submodule.map_top]
+
+/-- The identity comodule morphism leaves a subcomodule unchanged. -/
+@[simp]
+theorem map_id (A : Subcomodule R C M) : A.map (Comodule.Hom.id R C M) = A := by
+  ext m
+  rw [mem_map]
+  constructor
+  · rintro ⟨m', hm', h⟩
+    exact h ▸ hm'
+  · intro hm
+    exact ⟨m, hm, rfl⟩
+
+variable {P : Type*} [AddCommMonoid P] [Module R P] [Comodule R C P]
+
+/-- Images of subcomodules compose with comodule morphisms. -/
+@[simp]
+theorem map_map (A : Subcomodule R C M) (f : Comodule.Hom R C M N)
+    (g : Comodule.Hom R C N P) : (A.map f).map g = A.map (g.comp f) := by
+  ext p
+  constructor
+  · rw [mem_map, mem_map]
+    rintro ⟨n, ⟨m, hm, hmn⟩, hnp⟩
+    refine ⟨m, hm, ?_⟩
+    calc
+      (g.comp f) m = g (f m) := by simp only [Comodule.Hom.comp_apply]
+      _ = g n := congrArg g hmn
+      _ = p := hnp
+  · rw [mem_map]
+    rintro ⟨m, hm, rfl⟩
+    exact mem_map_of_mem g (mem_map_of_mem f hm)
 
 end Subcomodule
 
