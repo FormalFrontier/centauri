@@ -14,8 +14,8 @@ coalgebra of the coaction and leaves the underlying module unchanged, finite gen
 preserved automatically.
 
 This is Layer 1 infrastructure for the reductive-groups roadmap target "Comodules over a
-coalgebra/Hopf algebra": the finite-dimensional representation category must remain available
-when the coordinate coalgebra is changed along a coalgebra morphism.
+coalgebra/Hopf algebra": the finitely generated comodule category must remain available when
+the coordinate coalgebra is changed along a coalgebra morphism.
 
 ## Main definitions
 
@@ -49,17 +49,9 @@ variable [AddCommMonoid D] [Module R D] [Coalgebra R D]
 The underlying module is unchanged, so the finite-generation proof is inherited from the
 source object. -/
 def corestrict (f : C →ₗc[R] D) : FGComoduleCat.{u, v, x} R C ⥤ FGComoduleCat.{u, w, x} R D where
-  obj M :=
-    ⟨(ComoduleCat.corestrict (R := R) (C := C) (D := D) f).obj M.obj, M.property⟩
-  map {M N} g :=
-    ObjectProperty.homMk
-      ((ComoduleCat.corestrict (R := R) (C := C) (D := D) f).map g.hom)
-  map_id M := by
-    ext m
-    rfl
-  map_comp g h := by
-    ext m
-    rfl
+  __ := (ComoduleCat.isFG (R := R) (C := D)).lift
+    ((incl (R := R) (C := C)) ⋙ ComoduleCat.corestrict (R := R) (C := C) (D := D) f)
+    (fun M => M.property)
 
 /-- Corestriction on finitely generated comodules is corestriction on the ambient comodule. -/
 @[simp]
@@ -156,28 +148,6 @@ theorem forget₂_semimoduleCat_corestrict_map (f : C →ₗc[R] D)
     (forget₂ (FGComoduleCat.{u, w, x} R D) (SemimoduleCat.{x} R)).map
         ((corestrict (R := R) (C := C) (D := D) f).map g) =
       (forget₂ (FGComoduleCat.{u, v, x} R C) (SemimoduleCat.{x} R)).map g :=
-  rfl
-
-variable {E : Type*} [AddCommMonoid E] [Module R E] [Coalgebra R E]
-
-/-- Corestriction functors on finitely generated comodules compose in the coalgebra morphism
-on underlying linear maps. -/
-@[simp]
-theorem corestrict_map_comp_coalg_toLinearMap (f : C →ₗc[R] D) (g : D →ₗc[R] E)
-    {M N : FGComoduleCat.{u, v, x} R C} (h : M ⟶ N) :
-    (((corestrict (R := R) (C := C) (D := E) (g.comp f)).map h).hom).toLinearMap =
-      (((corestrict (R := R) (C := D) (D := E) g).map
-        ((corestrict (R := R) (C := C) (D := D) f).map h)).hom).toLinearMap :=
-  rfl
-
-/-- Corestriction functors on finitely generated comodules compose in the coalgebra morphism
-on elements. -/
-@[simp]
-theorem corestrict_map_comp_coalg_apply (f : C →ₗc[R] D) (g : D →ₗc[R] E)
-    {M N : FGComoduleCat.{u, v, x} R C} (h : M ⟶ N) (m : M) :
-    (corestrict (R := R) (C := C) (D := E) (g.comp f)).map h m =
-      (corestrict (R := R) (C := D) (D := E) g).map
-        ((corestrict (R := R) (C := C) (D := D) f).map h) m :=
   rfl
 
 end FGComoduleCat
