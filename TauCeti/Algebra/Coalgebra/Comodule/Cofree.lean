@@ -64,7 +64,8 @@ variable [AddCommMonoid P] [Module R P]
 variable (R C M) in
 /-- The coaction of the cofree right `C`-comodule on `M ⊗[R] C`, namely `id ⊗ Δ` followed by
 reassociation: `m ⊗ c ↦ ∑ (m ⊗ c₁) ⊗ c₂`. This is an implementation detail of `Comodule.cofree`;
-the public characterization of the coaction is `Comodule.cofree_coact_tmul`. -/
+the public characterizations of the coaction are `Comodule.cofree_coact` and
+`Comodule.cofree_coact_tmul`. -/
 private noncomputable def cofreeCoact : M ⊗[R] C →ₗ[R] (M ⊗[R] C) ⊗[R] C :=
   (TensorProduct.assoc R M C C).symm.toLinearMap ∘ₗ Coalgebra.comul.lTensor M
 
@@ -134,8 +135,16 @@ noncomputable def cofree : Comodule R C (M ⊗[R] C) where
     refine TensorProduct.ext' fun m c => ?_
     simp
 
+/-- The coaction of the cofree comodule is `id ⊗ Δ` followed by reassociation. -/
+@[simp]
+theorem cofree_coact :
+    letI := cofree R C M
+    coact (R := R) (C := C) (M := M ⊗[R] C)
+      = (TensorProduct.assoc R M C C).symm.toLinearMap ∘ₗ Coalgebra.comul.lTensor M :=
+  rfl
+
 /-- The coaction of the cofree comodule unfolds to its implementation `cofreeCoact`. -/
-private theorem cofree_coact :
+private theorem cofree_coact_eq_cofreeCoact :
     letI := cofree R C M
     coact (R := R) (C := C) (M := M ⊗[R] C) = cofreeCoact R C M :=
   rfl
@@ -162,7 +171,8 @@ noncomputable def cofreeMap (f : M →ₗ[R] N) :
     { toLinearMap := f.rTensor C
       map_coact := by
         refine TensorProduct.ext' fun m c => ?_
-        simp only [cofree_coact, LinearMap.comp_apply, cofreeCoact_tmul, LinearMap.rTensor_tmul]
+        simp only [cofree_coact_eq_cofreeCoact, LinearMap.comp_apply, cofreeCoact_tmul,
+          LinearMap.rTensor_tmul]
         induction Coalgebra.comul (R := R) (A := C) c using TensorProduct.induction_on with
         | zero => simp
         | add x y hx hy => simp only [tmul_add, map_add, hx, hy]
@@ -217,7 +227,7 @@ noncomputable def cofreeUnit [Comodule R C P] :
   exact
     { toLinearMap := coact (R := R) (C := C) (M := P)
       map_coact := by
-        rw [cofree_coact]
+        rw [cofree_coact_eq_cofreeCoact]
         refine LinearMap.ext fun p => ?_
         simp only [LinearMap.comp_apply, cofreeCoact, LinearEquiv.coe_coe]
         rw [← Comodule.coassoc_apply p, LinearEquiv.symm_apply_apply]
