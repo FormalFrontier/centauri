@@ -3,6 +3,8 @@ open Verso Genre Blog
 
 #doc (Page) "About" =>
 
+{leanExampleProject aboutExamples "examples"}
+
 Tau Ceti is an experiment in AI-authored mathematics. Humans choose the
 mathematics — the targets live in a separate, human-reviewed roadmap repository —
 and AI agents do the formalization: writing Lean proofs, opening pull requests, and
@@ -25,12 +27,9 @@ touches only the mathematics, it merges automatically.
 
 # From the elliptic-PDE work
 
-On a uniformly elliptic region, the coefficient matrix induces a coercive bilinear
-form — the hypothesis that powers Lax–Milgram:
+The theorem below is elaborated against the Tau Ceti library when this site is
+built — extracted directly from a project that imports the library, so it cannot
+drift out of date. On a uniformly elliptic region, the coefficient matrix induces a
+coercive bilinear form, the hypothesis that powers Lax–Milgram:
 
-```
-theorem isCoercive_matrixBilinearForm (h : UniformlyEllipticOn Ω a lam Lam)
-    {x : X} (hx : x ∈ Ω) : IsCoercive (matrixBilinearForm (a x))
-```
-
-The proof is [in the library](https://github.com/FormalFrontier/TauCeti/blob/main/TauCeti/Analysis/PDE/UniformEllipticity.lean).
+{leanCommand aboutExamples ellipticity_coercive}

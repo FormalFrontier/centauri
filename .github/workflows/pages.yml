@@ -1,8 +1,12 @@
 name: Pages
 
 # Build the Verso website in web/ and deploy it to GitHub Pages.
-# Independent of the root TauCeti project: it uses web/lean-toolchain and only
-# builds the standalone site (plus a Mathlib olean download for checked examples).
+#
+# The site project (web/) depends only on Verso. The type-checked theorem snippets are
+# extracted by SubVerso from web/examples/ — a separate project that imports the real
+# TauCeti library (and hence Mathlib) — so the showcased mathematics is elaborated at
+# build time and cannot drift. The examples project is built first; its Mathlib oleans
+# come from the cache, not a from-scratch rebuild.
 
 on:
   push:
@@ -21,6 +25,10 @@ concurrency:
   group: pages
   cancel-in-progress: true
 
+env:
+  # Run JavaScript actions on Node 24 (Node 20 is deprecated on GitHub runners).
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -30,21 +38,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install elan (toolchain comes from web/lean-toolchain)
+      - name: Install elan
         run: |
           curl -sSfL https://elan.lean-lang.org/elan-init.sh -o elan-init.sh
           chmod +x elan-init.sh
           ./elan-init.sh -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
-      - name: Cache web/.lake (Verso build is compiled from source)
+      - name: Cache Lake builds (site + examples)
         uses: actions/cache@v4
         with:
-          path: web/.lake
-          key: web-lake-${{ runner.os }}-${{ hashFiles('web/lake-manifest.json', 'web/lean-toolchain') }}
+          path: |
+            web/.lake
+            web/examples/.lake
+          key: web-lake-${{ runner.os }}-${{ hashFiles('web/lake-manifest.json', 'web/lean-toolchain', 'web/examples/lake-manifest.json', 'web/examples/lean-toolchain') }}
           restore-keys: web-lake-${{ runner.os }}-
 
-      - name: Build site (compiles Verso from source)
+      - name: Fetch Mathlib oleans (examples project)
+        working-directory: web/examples
+        run: lake exe cache get
+
+      - name: Build examples project (checks the showcased TauCeti theorems)
+        working-directory: web/examples
+        run: lake build
+
+      - name: Build site (extracts the checked snippets, compiles Verso)
         run: lake build
 
       - name: Generate static site
