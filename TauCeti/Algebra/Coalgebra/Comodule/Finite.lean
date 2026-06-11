@@ -21,6 +21,9 @@ reconstruction should be built on this full subcategory rather than on all comod
 
 * `TauCeti.ComoduleCat.isFG`: the finite-generation object property on `ComoduleCat`.
 * `TauCeti.FGComoduleCat`: finitely generated right comodules as a full subcategory.
+* `TauCeti.FGComoduleCat.incl`: the inclusion into all comodules.
+* `forget₂ (FGComoduleCat R C) (ComoduleCat R C)`: the forgetful functor to all comodules.
+* `forget₂ (FGComoduleCat R C) (SemimoduleCat R)`: the forgetful functor to semimodules.
 * `TauCeti.FGComoduleCat.of`: build a finitely generated bundled comodule from unbundled data.
 * `TauCeti.FGComoduleCat.ofHom`: lift an unbundled comodule morphism between finitely generated
   comodules.
@@ -101,6 +104,32 @@ instance (M : FGComoduleCat.{u, v, w} R C) : Comodule R C M :=
 /-- The underlying module of a finitely generated comodule is finitely generated. -/
 instance (M : FGComoduleCat.{u, v, w} R C) : Module.Finite R M :=
   M.property
+
+/-- The inclusion from finitely generated comodules to all comodules. -/
+abbrev incl : FGComoduleCat.{u, v, w} R C ⥤ ComoduleCat.{u, v, w} R C :=
+  (ComoduleCat.isFG (R := R) (C := C)).ι
+
+/-- Forget a finitely generated comodule to its underlying semimodule. -/
+instance hasForgetToSemimoduleCat :
+    HasForget₂ (FGComoduleCat.{u, v, w} R C) (SemimoduleCat.{w} R) :=
+  HasForget₂.trans (FGComoduleCat.{u, v, w} R C) (ComoduleCat.{u, v, w} R C)
+    (SemimoduleCat.{w} R)
+
+/-- Forgetting a finitely generated comodule to semimodules agrees with forgetting its ambient
+comodule. -/
+@[simp]
+theorem forget₂_semimoduleCat_obj (M : FGComoduleCat.{u, v, w} R C) :
+    (forget₂ (FGComoduleCat.{u, v, w} R C) (SemimoduleCat.{w} R)).obj M =
+      (forget₂ (ComoduleCat.{u, v, w} R C) (SemimoduleCat.{w} R)).obj M.obj :=
+  rfl
+
+/-- Forgetting a finitely generated comodule morphism to semimodules agrees with forgetting its
+ambient comodule morphism. -/
+@[simp]
+theorem forget₂_semimoduleCat_map {M N : FGComoduleCat.{u, v, w} R C} (f : M ⟶ N) :
+    (forget₂ (FGComoduleCat.{u, v, w} R C) (SemimoduleCat.{w} R)).map f =
+      (forget₂ (ComoduleCat.{u, v, w} R C) (SemimoduleCat.{w} R)).map f.hom :=
+  rfl
 
 /-- Lift an unbundled finitely generated right comodule to `FGComoduleCat`. -/
 abbrev of (M : Type w) [AddCommMonoid M] [Module R M] [Comodule R C M]
