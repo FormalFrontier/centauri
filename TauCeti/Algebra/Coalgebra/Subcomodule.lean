@@ -2,7 +2,7 @@
 Copyright (c) 2026 The Tau Ceti contributors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
-import TauCeti.Algebra.Coalgebra.Comodule.Hom
+import TauCeti.Algebra.Coalgebra.Comodule
 
 /-!
 # Subcomodules
@@ -22,12 +22,15 @@ subcomodules and the fundamental theorem of comodules. Later work can use
 * `TauCeti.Subcomodule`: a submodule stable under the coaction.
 * `TauCeti.Subcomodule.toSubmodule`: the underlying submodule.
 * `⊤` and `⊥`: the full and zero subcomodules.
+* `TauCeti.Subcomodule.map`: the image of a subcomodule under a comodule morphism.
 * `TauCeti.Comodule.Hom.range`: the image subcomodule of a comodule morphism.
 
 ## References
 
 This follows the standard definition of a subcomodule: `N ≤ M` satisfies
 `ρ(N) ⊆ N ⊗ C`. See Sweedler, *Hopf Algebras*, Chapter 2.
+
+The lightweight range-based API follows the pattern of `TauCeti.Subcoalgebra`.
 -/
 
 open scoped TensorProduct
@@ -192,6 +195,79 @@ instance : OrderBot (Subcomodule R C M) where
     rw [hm]
     exact zero_mem N
 
+variable {N : Type x} [AddCommMonoid N] [Module R N] [Comodule R C N]
+
+private def mapSubtype (f : Comodule.Hom R C M N) (A : Subcomodule R C M) :
+    A.carrier →ₗ[R] A.carrier.map f.toLinearMap where
+  toFun a := ⟨f a, Submodule.mem_map_of_mem a.2⟩
+  map_add' a b := Subtype.ext (map_add f.toLinearMap (a : M) (b : M))
+  map_smul' r a := Subtype.ext (map_smul f.toLinearMap r (a : M))
+
+private theorem image_tensor_apply (f : Comodule.Hom R C M N) (A : Subcomodule R C M)
+    (t : A.carrier ⊗[R] C) :
+    TensorProduct.map (A.carrier.map f.toLinearMap).subtype (LinearMap.id : C →ₗ[R] C)
+        (TensorProduct.map (mapSubtype f A) (LinearMap.id : C →ₗ[R] C) t) =
+      TensorProduct.map f.toLinearMap (LinearMap.id : C →ₗ[R] C)
+        (TensorProduct.map A.carrier.subtype (LinearMap.id : C →ₗ[R] C) t) := by
+  induction t with
+  | zero => simp only [map_zero]
+  | tmul a c => rfl
+  | add x y hx hy => simp only [map_add, hx, hy]
+
+/-- The image of a subcomodule under a comodule morphism. -/
+def map (A : Subcomodule R C M) (f : Comodule.Hom R C M N) : Subcomodule R C N where
+  carrier := A.carrier.map f.toLinearMap
+  coact_mem' := by
+    intro n hn
+    rcases Submodule.mem_map.mp hn with ⟨m, hm, rfl⟩
+    rcases A.coact_mem hm with ⟨t, ht⟩
+    refine ⟨TensorProduct.map (mapSubtype f A) (LinearMap.id : C →ₗ[R] C) t, ?_⟩
+    rw [image_tensor_apply, ht]
+    exact Comodule.Hom.map_coact_apply f m
+
+/-- The underlying submodule of the image subcomodule is the image of the underlying
+submodule. -/
+@[simp]
+theorem map_toSubmodule (A : Subcomodule R C M) (f : Comodule.Hom R C M N) :
+    (A.map f).toSubmodule = A.toSubmodule.map f.toLinearMap :=
+  rfl
+
+/-- Membership in the image subcomodule. -/
+theorem mem_map {A : Subcomodule R C M} {f : Comodule.Hom R C M N} {n : N} :
+    n ∈ A.map f ↔ ∃ m ∈ A, f m = n := by
+  rw [← mem_toSubmodule, map_toSubmodule, Submodule.mem_map]
+  rfl
+
+/-- The image of an element of a subcomodule belongs to the image subcomodule. -/
+theorem mem_map_of_mem (f : Comodule.Hom R C M N) {A : Subcomodule R C M} {m : M}
+    (hm : m ∈ A) : f m ∈ A.map f :=
+  (mem_map (A := A) (f := f)).2 ⟨m, hm, rfl⟩
+
+/-- The image subcomodule is contained in `B` exactly when each image of an element of the
+source subcomodule belongs to `B`. -/
+theorem map_le_iff {A : Subcomodule R C M} {f : Comodule.Hom R C M N}
+    {B : Subcomodule R C N} :
+    A.map f ≤ B ↔ ∀ ⦃m⦄, m ∈ A → f m ∈ B := by
+  constructor
+  · intro h m hm
+    exact h (mem_map_of_mem f hm)
+  · intro h n hn
+    rcases (mem_map (A := A) (f := f)).1 hn with ⟨m, hm, rfl⟩
+    exact h hm
+
+/-- The image construction is monotone in the source subcomodule. -/
+theorem map_mono (f : Comodule.Hom R C M N) {A B : Subcomodule R C M} (hAB : A ≤ B) :
+    A.map f ≤ B.map f := by
+  intro n hn
+  rcases (mem_map (A := A) (f := f)).1 hn with ⟨m, hm, rfl⟩
+  exact mem_map_of_mem f (hAB hm)
+
+/-- The image of the top subcomodule is the range of the comodule morphism as a submodule. -/
+@[simp]
+theorem map_top_toSubmodule (f : Comodule.Hom R C M N) :
+    ((⊤ : Subcomodule R C M).map f).toSubmodule = LinearMap.range f.toLinearMap := by
+  rw [map_toSubmodule, top_toSubmodule, Submodule.map_top]
+
 end Subcomodule
 
 namespace Comodule
@@ -201,44 +277,34 @@ namespace Hom
 variable {R C M}
 variable {N : Type x} [AddCommMonoid N] [Module R N] [Comodule R C N]
 
-omit [Coalgebra R C] [Comodule R C M] [Comodule R C N] in
-private theorem map_mem_subtype_tensor_range (f : M →ₗ[R] N) (t : M ⊗[R] C) :
-    TensorProduct.map f (LinearMap.id : C →ₗ[R] C) t ∈
-      LinearMap.range
-        (TensorProduct.map (LinearMap.range f).subtype (LinearMap.id : C →ₗ[R] C)) := by
-  induction t using TensorProduct.induction_on with
-  | zero => exact ⟨0, by simp⟩
-  | tmul m c => exact ⟨⟨f m, LinearMap.mem_range_self f m⟩ ⊗ₜ[R] c, by simp⟩
-  | add x y hx hy =>
-      rcases hx with ⟨x', hx⟩
-      rcases hy with ⟨y', hy⟩
-      exact ⟨x' + y', by simp [map_add, hx, hy]⟩
-
 /-- The image of a comodule morphism as a subcomodule of the codomain. -/
-def range (f : Hom R C M N) : Subcomodule R C N where
-  carrier := LinearMap.range f.toLinearMap
-  coact_mem' := by
-    intro n hn
-    rcases hn with ⟨m, rfl⟩
-    rcases map_mem_subtype_tensor_range (R := R) (C := C) f.toLinearMap
-        (Comodule.coact (R := R) (C := C) (M := M) m) with
-      ⟨t, ht⟩
-    exact ⟨t, ht.trans (by simp)⟩
+def range (f : Hom R C M N) : Subcomodule R C N :=
+  (⊤ : Subcomodule R C M).map f
 
 @[simp]
 theorem range_toSubmodule (f : Hom R C M N) :
-    (range (R := R) (C := C) f).toSubmodule = LinearMap.range f.toLinearMap :=
-  rfl
+    (range (R := R) (C := C) f).toSubmodule = LinearMap.range f.toLinearMap := by
+  rw [range, Subcomodule.map_top_toSubmodule]
 
 @[simp]
 theorem mem_range {f : Hom R C M N} {n : N} :
-    n ∈ range (R := R) (C := C) f ↔ ∃ m, f m = n :=
-  Iff.rfl
+    n ∈ range (R := R) (C := C) f ↔ ∃ m, f m = n := by
+  rw [← Subcomodule.mem_toSubmodule, range_toSubmodule]
+  rfl
 
 /-- A comodule morphism lands in its image subcomodule. -/
-theorem apply_mem_range (f : Hom R C M N) (m : M) :
+theorem mem_range_self (f : Hom R C M N) (m : M) :
     f m ∈ range (R := R) (C := C) f :=
-  ⟨m, rfl⟩
+  (Subcomodule.mem_map (A := (⊤ : Subcomodule R C M)) (f := f)).2
+    ⟨m, Subcomodule.mem_top m, rfl⟩
+
+/-- The range of a comodule morphism is contained in `P` exactly when each value of the
+morphism belongs to `P`. -/
+theorem range_le_iff {f : Hom R C M N} {P : Subcomodule R C N} :
+    range (R := R) (C := C) f ≤ P ↔ ∀ m, f m ∈ P := by
+  rw [range]
+  simpa using
+    (Subcomodule.map_le_iff (A := (⊤ : Subcomodule R C M)) (f := f) (B := P))
 
 end Hom
 
