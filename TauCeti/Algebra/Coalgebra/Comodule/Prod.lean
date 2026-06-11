@@ -299,16 +299,14 @@ def coprod (f : Hom R C M P) (g : Hom R C N P) : Hom R C (M × N) P where
     comp (coprod f g) inl = f := by
   ext m
   simp only [comp_apply, coprod_apply, inl_apply]
-  change f m + g.toLinearMap 0 = f m
-  rw [map_zero g.toLinearMap, add_zero]
+  simp [Hom.apply_zero]
 
 /-- The second inclusion recovers the second component of a morphism out of the coproduct. -/
 @[simp] theorem coprod_comp_inr (f : Hom R C M P) (g : Hom R C N P) :
     comp (coprod f g) inr = g := by
   ext n
   simp only [comp_apply, coprod_apply, inr_apply]
-  change f.toLinearMap 0 + g n = g n
-  rw [map_zero f.toLinearMap, zero_add]
+  simp [Hom.apply_zero]
 
 /-- A morphism into the product is determined by its two projections: two morphisms into
 `M × N` that agree after `fst` and after `snd` are equal. This is the uniqueness half of the
@@ -337,11 +335,11 @@ theorem coprod_ext {h k : Hom R C (M × N) P} (hinl : comp h inl = comp k inl)
 @[simp] theorem fst_comp_inl : comp (fst : Hom R C (M × N) M) inl = id R C M := by
   ext m; simp
 
-/-- The first projection kills the second inclusion. -/
+/-- The second projection kills the first inclusion. -/
 @[simp] theorem snd_comp_inl : comp (snd : Hom R C (M × N) N) inl = 0 := by
   ext m; simp
 
-/-- The second projection kills the first inclusion. -/
+/-- The first projection kills the second inclusion. -/
 @[simp] theorem fst_comp_inr : comp (fst : Hom R C (M × N) M) inr = 0 := by
   ext n; simp
 
