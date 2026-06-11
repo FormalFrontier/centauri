@@ -1,0 +1,189 @@
+:root {
+  --navy-0: #080b16;
+  --navy-1: #0d1430;
+  --navy-2: #161e3d;
+  --amber-1: #ffd27a;
+  --amber-2: #ff9d4d;
+  --teal: #5eead4;
+  --text: #eef2fb;
+  --muted: #9aa6c9;
+  --line: rgba(255, 255, 255, 0.08);
+  --panel: rgba(255, 255, 255, 0.03);
+  --display: "Chakra Petch", system-ui, sans-serif;
+  --max: 1100px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.65;
+  background:
+    radial-gradient(125% 100% at 22% -5%, var(--navy-2), var(--navy-1) 55%, var(--navy-0) 100%)
+    fixed;
+}
+
+a { color: var(--teal); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+h1, h2, h3 {
+  font-family: var(--display);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.15;
+}
+
+/* ---- nav ---- */
+.site-nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(8, 11, 22, 0.72);
+  backdrop-filter: blur(9px);
+  border-bottom: 1px solid var(--line);
+}
+.nav-inner {
+  max-width: var(--max);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 1.25rem;
+}
+.brand img { height: 34px; display: block; }
+.nav-links a {
+  margin-left: 1.5rem;
+  color: var(--muted);
+  font-family: var(--display);
+  font-size: 0.95rem;
+}
+.nav-links a:hover { color: var(--text); text-decoration: none; }
+
+main { max-width: var(--max); margin: 0 auto; padding: 0 1.25rem; }
+
+/* ---- hero ---- */
+.hero {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 2.75rem;
+  align-items: center;
+  padding: 4.5rem 0 3rem;
+}
+.hero-img {
+  width: 100%;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+}
+.hero-title {
+  font-size: 4.2rem;
+  margin: 0;
+  background: linear-gradient(120deg, #ffffff, #cfe0ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.hero-tag {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  color: var(--teal);
+  margin: 0.4rem 0 1rem;
+}
+.hero-sub { color: var(--muted); font-size: 1.12rem; max-width: 38ch; }
+.cta {
+  display: inline-block;
+  margin-top: 1.5rem;
+  padding: 0.72rem 1.4rem;
+  border-radius: 999px;
+  font-family: var(--display);
+  font-weight: 600;
+  color: #1a1205;
+  background: linear-gradient(120deg, var(--amber-1), var(--amber-2));
+}
+.cta:hover { text-decoration: none; filter: brightness(1.07); }
+
+/* ---- pillars ---- */
+.pillars {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  padding: 1rem 0 2.5rem;
+}
+.pillar {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1.5rem;
+}
+.pillar h3 { margin: 0.1rem 0 0.55rem; color: var(--amber-1); font-size: 1.15rem; }
+.pillar p { margin: 0; color: var(--muted); }
+
+/* ---- bands + cards ---- */
+.band { padding: 2.75rem 0; border-top: 1px solid var(--line); }
+.section-title { font-size: 1.95rem; text-align: center; margin: 0 0 1.7rem; }
+.cards { display: grid; gap: 1.1rem; }
+.cards.four { grid-template-columns: repeat(4, 1fr); }
+.cards.three { grid-template-columns: repeat(3, 1fr); }
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1.35rem;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.card h3 { margin: 0 0 0.3rem; font-size: 1.1rem; }
+.card.repo { display: block; color: inherit; }
+.card.repo h3 { color: var(--teal); }
+.card.repo p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.95rem; }
+a.card:hover { transform: translateY(-3px); border-color: var(--teal); text-decoration: none; }
+
+/* ---- "a taste of the maths" ---- */
+.taste-note {
+  text-align: center;
+  color: var(--muted);
+  margin: -0.8rem auto 1.6rem;
+  max-width: 52ch;
+}
+.taste pre, main pre {
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  padding: 1rem 1.1rem;
+  overflow-x: auto;
+}
+
+/* ---- footer ---- */
+.site-footer {
+  margin-top: 3.5rem;
+  border-top: 1px solid var(--line);
+  background: rgba(8, 11, 22, 0.6);
+}
+.foot-inner { max-width: var(--max); margin: 0 auto; padding: 2.25rem 1.25rem; text-align: center; }
+.foot-tag { font-family: var(--display); color: var(--teal); font-size: 1.2rem; margin: 0 0 0.7rem; }
+.foot-links {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.7rem;
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.foot-links a { color: var(--muted); }
+.foot-legal { color: var(--muted); font-size: 0.85rem; margin: 0; }
+
+/* About / interior prose pages */
+.frontpage { padding-bottom: 1rem; }
+
+/* ---- responsive ---- */
+@media (max-width: 820px) {
+  .hero { grid-template-columns: 1fr; padding: 2.75rem 0; }
+  .pillars { grid-template-columns: 1fr; }
+  .cards.four, .cards.three { grid-template-columns: 1fr 1fr; }
+  .hero-title { font-size: 3.1rem; }
+}
+@media (max-width: 520px) {
+  .cards.four, .cards.three { grid-template-columns: 1fr; }
+}

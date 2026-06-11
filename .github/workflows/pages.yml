@@ -1,0 +1,70 @@
+name: Pages
+
+# Build the Verso website in web/ and deploy it to GitHub Pages.
+# Independent of the root TauCeti project: it uses web/lean-toolchain and only
+# builds the standalone site (plus a Mathlib olean download for checked examples).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install elan (toolchain comes from web/lean-toolchain)
+        run: |
+          curl -sSfL https://elan.lean-lang.org/elan-init.sh -o elan-init.sh
+          chmod +x elan-init.sh
+          ./elan-init.sh -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Cache web/.lake (Verso build is compiled from source)
+        uses: actions/cache@v4
+        with:
+          path: web/.lake
+          key: web-lake-${{ runner.os }}-${{ hashFiles('web/lake-manifest.json', 'web/lean-toolchain') }}
+          restore-keys: web-lake-${{ runner.os }}-
+
+      - name: Fetch Mathlib oleans
+        run: lake exe cache get
+
+      - name: Build site (compiles Verso + checks the Mathlib examples)
+        run: lake build
+
+      - name: Generate static site
+        run: lake exe web --output _out
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/_out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
