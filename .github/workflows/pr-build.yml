@@ -69,6 +69,18 @@ jobs:
             echo "::warning::PR changes paths outside TauCeti/ (infra) — not sandbox-built; needs human review"
           fi
 
+      - name: Diff size guard — max(additions, deletions) ≤ 2000 (from the trusted GitHub PR totals)
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          read -r adds dels < <(gh api "repos/${{ github.repository }}/pulls/${{ steps.pr.outputs.num }}" \
+            --jq '"\(.additions) \(.deletions)"')
+          echo "diff size: +$adds / -$dels (cap: 2000 lines added and 2000 removed)"
+          if [ "$adds" -gt 2000 ] || [ "$dels" -gt 2000 ]; then
+            echo "TOO_LARGE=1" >> "$GITHUB_ENV"
+            echo "::error::This PR is too large to review: +$adds / -$dels lines (cap: 2000 added and 2000 removed). We cap diff size to keep review manageable — reviewers, AI and human alike, do far better work on small, focused PRs. Please split this into smaller PRs, one topic each. We are open to raising the cap once there is evidence that review is working well at the current size."
+            exit 1
+          fi
+
       - name: Checkout base (trusted)
         if: ${{ env.INFRA != '1' }}
         uses: actions/checkout@v4
@@ -163,6 +175,8 @@ jobs:
         run: |
           if [ "${{ env.INFRA }}" = "1" ]; then
             state=failure; desc="changes outside TauCeti/ — human review + merge required"
+          elif [ "${{ env.TOO_LARGE }}" = "1" ]; then
+            state=failure; desc="diff exceeds 2000 added or removed lines — split into smaller PRs to keep review manageable"
           elif [ "${{ steps.build.outcome }}" = "success" ]; then
             state=success; desc="sandboxed build + axiom audit passed (trusted config)"
           else
