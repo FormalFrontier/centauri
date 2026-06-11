@@ -11,6 +11,12 @@
   --panel: rgba(255, 255, 255, 0.03);
   --display: "Chakra Petch", system-ui, sans-serif;
   --max: 1100px;
+
+  /* Verso highlights default to black text; recolour for the dark theme. */
+  --verso-code-color: #d6def5;
+  --verso-code-keyword-color: #c4b5fd;
+  --verso-code-const-color: #7dd3fc;
+  --verso-code-var-color: #fcd9a8;
 }
 
 html { scroll-behavior: smooth; }
@@ -186,4 +192,55 @@ a.card:hover { transform: translateY(-3px); border-color: var(--teal); text-deco
 }
 @media (max-width: 520px) {
   .cards.four, .cards.three { grid-template-columns: 1fr; }
+}
+
+/* ---- Verso code blocks: readable on the dark theme ---- */
+.hl.lean .sort { color: var(--teal); }
+.hl.lean .doc-comment, .hl.lean .comment { color: var(--muted); font-style: italic; }
+.hl.lean.block {
+  background: #0a0f20;
+  color: var(--verso-code-color);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1.1rem 1.25rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  overflow-x: auto;
+}
+
+/* ---- horizontal carousel for the code samples ---- */
+.carousel { position: relative; display: flex; align-items: center; gap: 0.5rem; }
+.carousel-track {
+  flex: 1 1 auto;
+  display: flex;
+  gap: 1.25rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding: 0 0.5rem;
+  padding: 0.4rem 0.25rem 1.1rem;
+  scrollbar-color: var(--teal) rgba(255, 255, 255, 0.08);
+}
+.carousel-track > .hl.lean.block {
+  flex: 0 0 min(86%, 680px);
+  scroll-snap-align: center;
+  margin: 0;
+}
+.carousel-arrow {
+  flex: 0 0 auto;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  font-family: var(--display);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.carousel-arrow:hover { background: rgba(94, 234, 212, 0.12); border-color: var(--teal); }
+@media (max-width: 640px) {
+  .carousel-arrow { display: none; }
+  .carousel-track > .hl.lean.block { flex-basis: 88%; }
 }

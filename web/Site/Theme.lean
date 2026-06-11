@@ -15,6 +15,7 @@ def theme : Theme := { Theme.default with
           <title>{{ (← param (α := String) "title") }} " — Tau Ceti"</title>
           {{← builtinHeader }}
           <link rel="stylesheet" href="static/style.css"/>
+          <script src="static/site.js" defer="defer"></script>
         </head>
         <body>
           <header class="site-nav">
@@ -104,8 +105,14 @@ def theme : Theme := { Theme.default with
 
         <section class="band taste">
           <h2 class="section-title">"A taste of the maths"</h2>
-          <p class="taste-note">"A real theorem from the universal-covers development — extracted from the library and type-checked when this page is built, so it cannot drift out of date."</p>
-          {{← param "content" }}
+          <p class="taste-note">"Four real theorems — one for each roadmap theme — extracted from the library and type-checked when this page is built, so they cannot drift out of date."</p>
+          <div class="carousel">
+            <button class="carousel-arrow prev" type="button" aria-label="Previous example">"‹"</button>
+            <div class="carousel-track">
+              {{← param "content" }}
+            </div>
+            <button class="carousel-arrow next" type="button" aria-label="Next example">"›"</button>
+          </div>
         </section>
       </div>
     }}, id⟩

@@ -5,8 +5,10 @@ open Verso Genre Blog
 
 {leanExampleProject frontExamples "examples"}
 
-Deck-transformation rigidity, from the universal-covers development: two deck
-transformations of a connected covering space that agree at a single point of the
-total space are equal.
-
 {leanCommand frontExamples deck_rigidity}
+
+{leanCommand frontExamples ellipticity_coercive}
+
+{leanCommand frontExamples effective_divisor}
+
+{leanCommand frontExamples hopf_antipode}
