@@ -44,10 +44,7 @@ jobs:
           key: web-lake-${{ runner.os }}-${{ hashFiles('web/lake-manifest.json', 'web/lean-toolchain') }}
           restore-keys: web-lake-${{ runner.os }}-
 
-      - name: Fetch Mathlib oleans
-        run: lake exe cache get
-
-      - name: Build site (compiles Verso + checks the Mathlib examples)
+      - name: Build site (compiles Verso from source)
         run: lake build
 
       - name: Generate static site
