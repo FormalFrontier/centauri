@@ -3,6 +3,7 @@ Copyright (c) 2026 The Tau Ceti contributors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
 import Mathlib.RingTheory.Coalgebra.Hom
+import Mathlib.RingTheory.Finiteness.Basic
 import TauCeti.Algebra.Coalgebra.Subcoalgebra.Lattice
 
 /-!
@@ -84,16 +85,27 @@ theorem mem_map {f : C →ₗc[R] D} {A : Subcoalgebra R C} {d : D} :
   rfl
 
 /-- The image of an element of a subcoalgebra belongs to the image subcoalgebra. -/
-theorem apply_mem_map (f : C →ₗc[R] D) {A : Subcoalgebra R C} {c : C} (hc : c ∈ A) :
+theorem mem_map_of_mem (f : C →ₗc[R] D) {A : Subcoalgebra R C} {c : C} (hc : c ∈ A) :
     f c ∈ A.map f :=
   (mem_map (f := f) (A := A)).2 ⟨c, hc, rfl⟩
+
+/-- The image subcoalgebra is contained in `B` exactly when each image of an element of the
+source subcoalgebra belongs to `B`. -/
+theorem map_le_iff {f : C →ₗc[R] D} {A : Subcoalgebra R C} {B : Subcoalgebra R D} :
+    A.map f ≤ B ↔ ∀ ⦃c⦄, c ∈ A → f c ∈ B := by
+  constructor
+  · intro h c hc
+    exact h (mem_map_of_mem f hc)
+  · intro h d hd
+    rcases (mem_map (f := f) (A := A)).1 hd with ⟨c, hc, rfl⟩
+    exact h hc
 
 /-- The image construction is monotone in the source subcoalgebra. -/
 theorem map_mono (f : C →ₗc[R] D) {A B : Subcoalgebra R C} (hAB : A ≤ B) :
     A.map f ≤ B.map f := by
   intro d hd
   rcases (mem_map (f := f) (A := A)).1 hd with ⟨c, hc, rfl⟩
-  exact apply_mem_map f (hAB hc)
+  exact mem_map_of_mem f (hAB hc)
 
 /-- The image of the bottom subcoalgebra is bottom. -/
 @[simp]
@@ -126,24 +138,37 @@ theorem map_id (A : Subcoalgebra R C) : A.map (CoalgHom.id R C) = A := by
 
 /-- Images of subcoalgebras compose with coalgebra morphisms. -/
 @[simp]
-theorem map_comp (A : Subcoalgebra R C) (f : C →ₗc[R] D) (g : D →ₗc[R] E) :
-    A.map (g.comp f) = (A.map f).map g := by
+theorem map_map (A : Subcoalgebra R C) (f : C →ₗc[R] D) (g : D →ₗc[R] E) :
+    (A.map f).map g = A.map (g.comp f) := by
   ext e
   constructor
-  · rw [mem_map]
-    rintro ⟨c, hc, rfl⟩
-    exact apply_mem_map g (apply_mem_map f hc)
   · rw [mem_map, mem_map]
     rintro ⟨d, ⟨c, hc, hcd⟩, hde⟩
-    exact ⟨c, hc, by simpa using hde ▸ congrArg g hcd⟩
+    refine ⟨c, hc, ?_⟩
+    calc
+      (g.comp f) c = g (f c) := by simp only [CoalgHom.coe_comp, Function.comp_apply]
+      _ = g d := congrArg g hcd
+      _ = e := hde
+  · rw [mem_map]
+    rintro ⟨c, hc, rfl⟩
+    exact mem_map_of_mem g (mem_map_of_mem f hc)
 
 /-- The image of a binary join is the binary join of the images. -/
 @[simp]
 theorem map_sup (f : C →ₗc[R] D) (A B : Subcoalgebra R C) :
     (A ⊔ B).map f = A.map f ⊔ B.map f := by
   ext d
-  change d ∈ (A ⊔ B).toSubmodule.map f.toLinearMap ↔ d ∈ (A.map f ⊔ B.map f).toSubmodule
-  rw [sup_toSubmodule, Submodule.map_sup, sup_toSubmodule, map_toSubmodule, map_toSubmodule]
+  rw [← mem_toSubmodule, map_toSubmodule, sup_toSubmodule, Submodule.map_sup,
+    ← map_toSubmodule f A, ← map_toSubmodule f B, ← sup_toSubmodule, mem_toSubmodule]
+
+/-- The image of a supremum is the supremum of the images. -/
+@[simp]
+theorem map_iSup {ι : Sort*} (f : C →ₗc[R] D) (A : ι → Subcoalgebra R C) :
+    (⨆ i, A i).map f = ⨆ i, (A i).map f := by
+  ext d
+  rw [← mem_toSubmodule, map_toSubmodule, iSup_toSubmodule, Submodule.map_iSup]
+  simp_rw [← map_toSubmodule f]
+  rw [← iSup_toSubmodule, mem_toSubmodule]
 
 /-- The image of a finite join is the finite join of the images. -/
 @[simp]
@@ -151,24 +176,17 @@ theorem map_finset_sup {ι : Type*} (s : Finset ι) (f : C →ₗc[R] D)
     (A : ι → Subcoalgebra R C) :
     (s.sup A).map f = s.sup fun i => (A i).map f := by
   classical
-  induction s using Finset.induction_on with
-  | empty =>
-      simp
-  | insert i s hi ih =>
-      rw [Finset.sup_insert, map_sup, ih, Finset.sup_insert]
+  ext d
+  rw [← mem_toSubmodule, map_toSubmodule, finset_sup_toSubmodule, Finset.sup_eq_iSup,
+    Submodule.map_iSup]
+  simp_rw [Submodule.map_iSup, ← map_toSubmodule f]
+  rw [← Finset.sup_eq_iSup, ← finset_sup_toSubmodule, mem_toSubmodule]
 
 /-- The image of a finitely generated subcoalgebra is finitely generated as an `R`-module. -/
 theorem map_finite (f : C →ₗc[R] D) (A : Subcoalgebra R C)
-    [Module.Finite R A.carrier] : Module.Finite R (A.map f).toSubmodule := by
+    [Module.Finite R A.toSubmodule] : Module.Finite R (A.map f).toSubmodule := by
   rw [map_toSubmodule]
-  exact Module.Finite.of_surjective (mapSubtype f A) fun d => by
-    rcases Submodule.mem_map.mp d.2 with ⟨c, hc, hcd⟩
-    exact ⟨⟨c, hc⟩, Subtype.ext hcd⟩
-
-/-- The image of a finitely generated subcoalgebra is finitely generated as an `R`-module. -/
-instance instFiniteMap (f : C →ₗc[R] D) (A : Subcoalgebra R C)
-    [Module.Finite R A.carrier] : Module.Finite R (A.map f).toSubmodule :=
-  map_finite f A
+  infer_instance
 
 end Subcoalgebra
 
