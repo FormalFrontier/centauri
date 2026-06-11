@@ -6,20 +6,6 @@ name = "verso"
 git = "https://github.com/leanprover/verso.git"
 rev = "v4.31.0-rc1"
 
-# Pinned to the same Mathlib commit the root TauCeti project builds against, so the
-# showcased theorems type-check against exactly the library that proved them. (This
-# top-level pin overrides the `master` revision TauCeti requests transitively.)
-[[require]]
-name = "mathlib"
-git = "https://github.com/leanprover-community/mathlib4"
-rev = "66748b489336a59ed4b4a4a612615c38de823e9a"
-
-# The actual Tau Ceti mathematics, from the repository root, so the site can embed
-# real, type-checked theorems from the library.
-[[require]]
-name = "TauCeti"
-path = ".."
-
 [[lean_lib]]
 name = "Site"
 

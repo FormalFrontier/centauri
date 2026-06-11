@@ -1,5 +1,4 @@
 import VersoBlog
-import TauCeti.Analysis.PDE.UniformEllipticity
 open Verso Genre Blog
 
 #doc (Page) "About" =>
@@ -26,22 +25,12 @@ touches only the mathematics, it merges automatically.
 
 # From the elliptic-PDE work
 
-This page is itself built by Lean: the theorem below is a real result from the Tau
-Ceti library, elaborated when the site is generated, so it cannot drift out of date.
-On a uniformly elliptic region the coefficient matrix induces a coercive bilinear
-form — the hypothesis that powers Lax–Milgram.
+On a uniformly elliptic region, the coefficient matrix induces a coercive bilinear
+form — the hypothesis that powers Lax–Milgram:
 
-```leanInit about
+```
+theorem isCoercive_matrixBilinearForm (h : UniformlyEllipticOn Ω a lam Lam)
+    {x : X} (hx : x ∈ Ω) : IsCoercive (matrixBilinearForm (a x))
 ```
 
-```lean about
-open TauCeti PDE Matrix in
-/-- On a uniformly elliptic region, the coefficient matrix induces a coercive
-bilinear form at each interior point — the Lax–Milgram hypothesis, with explicit
-ellipticity constants. -/
-theorem ellipticity_coercive {X n : Type*} [Fintype n] [DecidableEq n]
-    {Ω : Set X} {a : X → Matrix n n ℝ} {lam Lam : ℝ}
-    (h : UniformlyEllipticOn Ω a lam Lam) {x : X} (hx : x ∈ Ω) :
-    IsCoercive (matrixBilinearForm (a x)) :=
-  h.isCoercive_matrixBilinearForm hx
-```
+The proof is [in the library](https://github.com/FormalFrontier/TauCeti/blob/main/TauCeti/Analysis/PDE/UniformEllipticity.lean).
