@@ -50,11 +50,11 @@ open TensorProduct LinearMap
 
 namespace TauCeti
 
-universe u v w
+universe u v w x y
 
 namespace Comodule
 
-variable {R : Type u} {C : Type v} {M N P : Type w}
+variable {R : Type u} {C : Type v} {M : Type w} {N : Type x} {P : Type y}
 variable [CommSemiring R]
 variable [AddCommMonoid C] [Module R C] [Coalgebra R C]
 variable [AddCommMonoid M] [Module R M]
@@ -63,12 +63,13 @@ variable [AddCommMonoid P] [Module R P]
 
 variable (R C M) in
 /-- The coaction of the cofree right `C`-comodule on `M ⊗[R] C`, namely `id ⊗ Δ` followed by
-reassociation: `m ⊗ c ↦ ∑ (m ⊗ c₁) ⊗ c₂`. -/
-noncomputable def cofreeCoact : M ⊗[R] C →ₗ[R] (M ⊗[R] C) ⊗[R] C :=
+reassociation: `m ⊗ c ↦ ∑ (m ⊗ c₁) ⊗ c₂`. This is an implementation detail of `Comodule.cofree`;
+the public characterization of the coaction is `Comodule.cofree_coact_tmul`. -/
+private noncomputable def cofreeCoact : M ⊗[R] C →ₗ[R] (M ⊗[R] C) ⊗[R] C :=
   (TensorProduct.assoc R M C C).symm.toLinearMap ∘ₗ Coalgebra.comul.lTensor M
 
 @[simp]
-theorem cofreeCoact_tmul (m : M) (c : C) :
+private theorem cofreeCoact_tmul (m : M) (c : C) :
     cofreeCoact R C M (m ⊗ₜ c) = (TensorProduct.assoc R M C C).symm (m ⊗ₜ Coalgebra.comul c) := by
   simp [cofreeCoact]
 
@@ -133,14 +134,14 @@ noncomputable def cofree : Comodule R C (M ⊗[R] C) where
     refine TensorProduct.ext' fun m c => ?_
     simp
 
-/-- The coaction of the cofree comodule is `cofreeCoact`. -/
-@[simp]
-theorem cofree_coact :
+/-- The coaction of the cofree comodule unfolds to its implementation `cofreeCoact`. -/
+private theorem cofree_coact :
     letI := cofree R C M
     coact (R := R) (C := C) (M := M ⊗[R] C) = cofreeCoact R C M :=
   rfl
 
-/-- The coaction of the cofree comodule on a simple tensor. -/
+/-- The coaction of the cofree comodule on a simple tensor: `m ⊗ c ↦ ∑ (m ⊗ c₁) ⊗ c₂`. -/
+@[simp]
 theorem cofree_coact_tmul (m : M) (c : C) :
     letI := cofree R C M
     coact (R := R) (C := C) (M := M ⊗[R] C) (m ⊗ₜ c)
@@ -190,8 +191,7 @@ theorem cofreeMap_id :
     cofreeMap (C := C) (LinearMap.id : M →ₗ[R] M) = Comodule.Hom.id R C (M ⊗[R] C) := by
   letI := cofree R C M
   refine Comodule.Hom.ext fun x => ?_
-  change (LinearMap.id : M →ₗ[R] M).rTensor C x = x
-  rw [LinearMap.rTensor_id]
+  rw [cofreeMap_apply, LinearMap.rTensor_id_apply]
   rfl
 
 /-- The cofree functor preserves composition. -/
@@ -205,9 +205,7 @@ theorem cofreeMap_comp (g : N →ₗ[R] P) (f : M →ₗ[R] N) :
   letI := cofree R C N
   letI := cofree R C P
   refine Comodule.Hom.ext fun x => ?_
-  change (g.comp f).rTensor C x = g.rTensor C (f.rTensor C x)
-  rw [rTensor_comp]
-  rfl
+  simp [LinearMap.rTensor_comp]
 
 variable (P) in
 /-- The coaction of a comodule `P`, viewed as a comodule morphism `P → P ⊗[R] C` into its cofree
@@ -219,9 +217,7 @@ noncomputable def cofreeUnit [Comodule R C P] :
   exact
     { toLinearMap := coact (R := R) (C := C) (M := P)
       map_coact := by
-        change TensorProduct.map (coact (R := R) (C := C) (M := P)) LinearMap.id ∘ₗ
-            coact (R := R) (C := C) (M := P)
-          = cofreeCoact R C P ∘ₗ coact (R := R) (C := C) (M := P)
+        rw [cofree_coact]
         refine LinearMap.ext fun p => ?_
         simp only [LinearMap.comp_apply, cofreeCoact, LinearEquiv.coe_coe]
         rw [← Comodule.coassoc_apply p, LinearEquiv.symm_apply_apply]
@@ -349,13 +345,29 @@ end Comodule
 namespace ComoduleCat
 
 variable (R : Type u) (C : Type v) [CommSemiring R] [AddCommMonoid C] [Module R C] [Coalgebra R C]
+variable {M : Type w} [AddCommMonoid M] [Module R M]
 
 /-- The cofree right `C`-comodule on a module `M`, bundled as an object of `ComoduleCat`. Its
 underlying module is `M ⊗[R] C` and its coaction is `m ⊗ c ↦ ∑ (m ⊗ c₁) ⊗ c₂`. -/
-noncomputable abbrev cofree (M : Type v) [AddCommMonoid M] [Module R M] :
-    ComoduleCat.{u, v, v} R C :=
+noncomputable abbrev cofree (M : Type w) [AddCommMonoid M] [Module R M] :
+    ComoduleCat.{u, v, max w v} R C :=
   letI := Comodule.cofree R C M
   of R C (M ⊗[R] C)
+
+/-- The underlying semimodule of the bundled cofree comodule is `M ⊗[R] C`. -/
+@[simp]
+theorem cofree_toSemimoduleCat :
+    (cofree R C M).toSemimoduleCat = SemimoduleCat.of R (M ⊗[R] C) :=
+  rfl
+
+/-- The coaction on the bundled cofree comodule on a simple tensor is
+`m ⊗ c ↦ ∑ (m ⊗ c₁) ⊗ c₂`. -/
+@[simp]
+theorem cofree_coact_tmul (m : M) (c : C) :
+    letI := Comodule.cofree R C M
+    Comodule.coact (R := R) (C := C) (M := cofree R C M) (m ⊗ₜ[R] c)
+      = (TensorProduct.assoc R M C C).symm (m ⊗ₜ Coalgebra.comul c) :=
+  Comodule.cofree_coact_tmul m c
 
 end ComoduleCat
 
