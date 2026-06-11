@@ -30,7 +30,7 @@ of the reductive-groups roadmap.
   universal properties of the product and the coproduct, characterized by
   `fst_comp_prod`/`snd_comp_prod` and `coprod_comp_inl`/`coprod_comp_inr` together with the
   uniqueness lemmas `prod_ext`/`coprod_ext`, with the biproduct relations `fst_comp_inl`,
-  `snd_comp_inl`, `fst_comp_inr`, `snd_comp_inr`.
+  `snd_comp_inl`, `fst_comp_inr`, `snd_comp_inr`, and `coprod_inl_inr`.
 
 ## References
 
@@ -378,6 +378,13 @@ theorem coprod_ext {h k : Hom R C (M × N) P} (hinl : comp h inl = comp k inl)
 /-- The second projection of the second inclusion is the identity. -/
 @[simp] theorem snd_comp_inr : comp (snd : Hom R C (M × N) N) inr = id R C N := by
   ext n; simp
+
+/-- The two coproduct inclusions decompose the identity on the product comodule. -/
+@[simp] theorem coprod_inl_inr : coprod (inl : Hom R C M (M × N)) inr = id R C (M × N) := by
+  apply Hom.ext
+  intro x
+  obtain ⟨m, n⟩ := x
+  simp
 
 end Hom
 
