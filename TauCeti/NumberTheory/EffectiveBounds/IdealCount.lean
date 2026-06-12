@@ -22,10 +22,8 @@ Mathlib's `Ideal.finite_setOf_absNorm_le` already gives finiteness (and `Ideal/A
 the sharp asymptotic `~ ρ·X`); the contribution here is the explicit elementary bound, the
 input to the effective class-number estimate.
 
-## Main results
+## Main result
 
-* `TauCeti.NumberField.prodLeTuples_ncard_le`: at most `X²·2ⁿ` positive `n`-tuples of
-  product `≤ X`.
 * `TauCeti.NumberField.card_ideal_absNorm_le`: at most `X²·2^[F:ℚ]` nonzero ideals of norm
   `≤ X`.
 
@@ -42,22 +40,22 @@ attribute [local instance] Classical.propDecidable
 namespace TauCeti.NumberField
 
 /-- The set of `n`-tuples of positive naturals with real product at most `X`. -/
-def prodLeTuples (n : ℕ) (X : ℝ) : Set (Fin n → ℕ) :=
+private def prodLeTuples (n : ℕ) (X : ℝ) : Set (Fin n → ℕ) :=
   {d : Fin n → ℕ | (∀ i, 0 < d i) ∧ (∏ i, (d i : ℝ)) ≤ X}
 
 @[simp]
-theorem mem_prodLeTuples {n : ℕ} {X : ℝ} {d : Fin n → ℕ} :
+private theorem mem_prodLeTuples {n : ℕ} {X : ℝ} {d : Fin n → ℕ} :
     d ∈ prodLeTuples n X ↔ (∀ i, 0 < d i) ∧ (∏ i, (d i : ℝ)) ≤ X := Iff.rfl
 
 /-- The tuple set is finite: every coordinate lies in `[1, ⌊X⌋]`. -/
-theorem prodLeTuples_finite (n : ℕ) (X : ℝ) : (prodLeTuples n X).Finite := by
+private theorem prodLeTuples_finite (n : ℕ) (X : ℝ) : (prodLeTuples n X).Finite := by
   apply Set.Finite.subset (Set.finite_Icc (1 : Fin n → ℕ) (fun _ => ⌊X⌋₊))
   rintro d ⟨hpos, hprod⟩
   refine ⟨fun i => hpos i, fun i => Nat.le_floor ?_⟩
   exact le_trans (mod_cast Finset.single_le_prod' (fun a _ => hpos a) (Finset.mem_univ i)) hprod
 
 /-- `∑_{j=1}^{N} 1/j² ≤ 2`, from the Basel sum `π²/6 < 2`. -/
-theorem sum_one_div_sq_le_two (N : ℕ) :
+private theorem sum_one_div_sq_le_two (N : ℕ) :
     ∑ j ∈ Finset.Icc 1 N, (1 : ℝ) / (j : ℝ) ^ 2 ≤ 2 := by
   have hconv : ∑ j ∈ Finset.Icc 1 N, (1 : ℝ) / (j : ℝ) ^ 2 ≤ Real.pi ^ 2 / 6 := by
     simpa using sum_le_hasSum (Finset.Icc 1 N) (fun n _ => by positivity)
@@ -67,7 +65,7 @@ theorem sum_one_div_sq_le_two (N : ℕ) :
 
 /-- The number of positive `n`-tuples of natural numbers whose real product is at most `X` is
 at most `X² * 2ⁿ`, for `X ≥ 1`. -/
-theorem prodLeTuples_ncard_le (n : ℕ) {X : ℝ} (hX : 1 ≤ X) :
+private theorem prodLeTuples_ncard_le (n : ℕ) {X : ℝ} (hX : 1 ≤ X) :
     ((prodLeTuples n X).ncard : ℝ) ≤ X ^ 2 * 2 ^ n := by
   induction n generalizing X with
   | zero =>
@@ -93,7 +91,7 @@ theorem prodLeTuples_ncard_le (n : ℕ) {X : ℝ} (hX : 1 ≤ X) :
             rw [Fin.prod_univ_castSucc] at h
             simpa [Fin.init] using h.2
         · obtain ⟨j, ⟨hj1, hjX⟩, e, ⟨hepos, heprod⟩, rfl⟩ := h
-          have hj0 : (0 : ℝ) < j := by exact_mod_cast (show 0 < j from hj1)
+          have hj0 : (0 : ℝ) < j := by exact_mod_cast hj1
           refine ⟨fun i => ?_, ?_⟩
           · refine Fin.lastCases ?_ (fun i => ?_) i
             · rw [Fin.snoc_last]; exact hj1
@@ -256,7 +254,13 @@ private theorem prod_encodeIdeal_eq {I : Ideal (𝓞 F)} :
   have hPp : P.IsPrime :=
     isPrime_of_prime (prime_of_normalized_factor P (Multiset.mem_toFinset.mp hP))
   have hP0 : P ≠ ⊥ := ne_zero_of_mem_normalizedFactors (Multiset.mem_toFinset.mp hP)
-  rw [Finset.prod_eq_single ⟨primeCoord F P, primeCoord_lt F hPp hP0⟩] <;> aesop
+  rw [Fintype.prod_eq_single ⟨primeCoord F P, primeCoord_lt F hPp hP0⟩]
+  · simp
+  · intro i hi
+    have hcoord : primeCoord F P ≠ i.val := by
+      intro hval
+      exact hi (Fin.ext hval.symm)
+    simp [hcoord]
 
 /-
 The product of the encoding coordinates is at most `absNorm I`.
@@ -270,8 +274,11 @@ private theorem prod_encodeIdeal_le_absNorm {I : Ideal (𝓞 F)} (hI : I ≠ ⊥
           (Ideal.absNorm P) ^ ((normalizedFactors I).count P)
         = Ideal.absNorm (∏ P ∈ (normalizedFactors I).toFinset,
           P ^ ((normalizedFactors I).count P)) := by
-      induction (normalizedFactors I).toFinset using Finset.induction <;>
-        simp_all +decide [Finset.prod_insert]
+      induction (normalizedFactors I).toFinset using Finset.induction with
+      | empty =>
+          simp
+      | insert P s hPs ih =>
+          rw [Finset.prod_insert hPs, Finset.prod_insert hPs, map_mul, ih, map_pow]
     convert h_prod_le.le using 2;
     convert ( Ideal.prod_normalizedFactors_eq_self hI ) |> Eq.symm;
     rw [ Finset.prod_multiset_count ];
@@ -366,7 +373,7 @@ open _root_.NumberField in
 one coordinate and contributes `absNorm (Ideal.under ℤ P) ^ count` there; the coordinate
 product is bounded by `Ideal.absNorm I`, and injectivity follows by recovering each count
 from a `padicValNat`. -/
-theorem ideal_ncard_le_prodLeTuples_ncard (F : Type) [Field F] [NumberField F]
+private theorem ideal_ncard_le_prodLeTuples_ncard (F : Type) [Field F] [NumberField F]
     {X : ℝ} :
     {I : Ideal (𝓞 F) | I ≠ ⊥ ∧ (Ideal.absNorm I : ℝ) ≤ X}.ncard ≤
       (prodLeTuples (Module.finrank ℚ F) X).ncard := by
