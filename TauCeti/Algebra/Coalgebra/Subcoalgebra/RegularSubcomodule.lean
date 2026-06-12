@@ -83,7 +83,7 @@ theorem mem_toRegularSubcomodule {D : Subcoalgebra R C} {c : C} :
 theorem toRegularSubcomodule_mono {D E : Subcoalgebra R C} (hDE : D ≤ E) :
     D.toRegularSubcomodule ≤ E.toRegularSubcomodule := by
   intro c hc
-  exact hDE hc
+  exact mem_toRegularSubcomodule.2 (hDE (mem_toRegularSubcomodule.1 hc))
 
 /-- Viewing subcoalgebras as regular subcomodules is an order embedding. -/
 def toRegularSubcomoduleOrderEmbedding :
@@ -96,9 +96,9 @@ def toRegularSubcomoduleOrderEmbedding :
     intro D E
     constructor
     · intro h c hc
-      exact h hc
+      exact mem_toRegularSubcomodule.1 (h (mem_toRegularSubcomodule.2 hc))
     · intro h c hc
-      exact h hc
+      exact mem_toRegularSubcomodule.2 (h (mem_toRegularSubcomodule.1 hc))
 
 /-- Applying the order embedding from subcoalgebras to regular subcomodules gives
 `toRegularSubcomodule`. -/
@@ -138,8 +138,10 @@ theorem toRegularSubcomodule_sup (D E : Subcoalgebra R C) :
 theorem toRegularSubcomodule_iSup {ι : Sort*} (D : ι → Subcoalgebra R C) :
     (⨆ i, D i).toRegularSubcomodule = ⨆ i, (D i).toRegularSubcomodule := by
   ext c
-  change c ∈ (⨆ i, D i).toRegularSubcomodule.toSubmodule ↔
-    c ∈ (⨆ i, (D i).toRegularSubcomodule).toSubmodule
+  rw [← Subcomodule.mem_toSubmodule
+      (N := (⨆ i, D i).toRegularSubcomodule),
+    ← Subcomodule.mem_toSubmodule
+      (N := ⨆ i, (D i).toRegularSubcomodule)]
   rw [Subcomodule.iSup_toSubmodule, toRegularSubcomodule_toSubmodule, iSup_toSubmodule]
   simp_rw [toRegularSubcomodule_toSubmodule]
 
@@ -149,8 +151,10 @@ theorem toRegularSubcomodule_sSup (S : Set (Subcoalgebra R C)) :
     (sSup S).toRegularSubcomodule =
       ⨆ D : S, (D : Subcoalgebra R C).toRegularSubcomodule := by
   ext c
-  change c ∈ (sSup S).toRegularSubcomodule.toSubmodule ↔
-    c ∈ (⨆ D : S, (D : Subcoalgebra R C).toRegularSubcomodule).toSubmodule
+  rw [← Subcomodule.mem_toSubmodule
+      (N := (sSup S).toRegularSubcomodule),
+    ← Subcomodule.mem_toSubmodule
+      (N := ⨆ D : S, (D : Subcoalgebra R C).toRegularSubcomodule)]
   rw [Subcomodule.iSup_toSubmodule, toRegularSubcomodule_toSubmodule, sSup_toSubmodule]
   simp_rw [toRegularSubcomodule_toSubmodule]
 
