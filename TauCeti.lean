@@ -38,3 +38,4 @@ import TauCeti.Analysis.PDE.LowerOrder
 import TauCeti.Analysis.PDE.UniformEllipticity
 import TauCeti.Basic
 import TauCeti.NumberTheory.EffectiveBounds.Discriminant
+import TauCeti.NumberTheory.EffectiveBounds.IdealCount
