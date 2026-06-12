@@ -57,8 +57,8 @@ private theorem tensorSquare_range_le_regular_range (D : Subcoalgebra R C) :
 
 /-- A subcoalgebra as a subcomodule of the regular right comodule.
 
-The underlying submodule is unchanged; the subcomodule condition is obtained by composing
-`D ⊗ D → C ⊗ C` with the inclusion `D ⊗ D → D ⊗ C`. -/
+The underlying submodule is unchanged; the map `D ⊗ D → C ⊗ C` factors through
+`D ⊗ C → C ⊗ C` by including the second tensor factor. -/
 def toRegularSubcomodule (D : Subcoalgebra R C) : Subcomodule R C C where
   carrier := D.toSubmodule
   coact_mem' := by
@@ -81,8 +81,9 @@ theorem mem_toRegularSubcomodule {D : Subcoalgebra R C} {c : C} :
 
 /-- Viewing a subcoalgebra as a regular subcomodule is monotone. -/
 theorem toRegularSubcomodule_mono {D E : Subcoalgebra R C} (hDE : D ≤ E) :
-    D.toRegularSubcomodule ≤ E.toRegularSubcomodule :=
-  hDE
+    D.toRegularSubcomodule ≤ E.toRegularSubcomodule := by
+  intro c hc
+  exact hDE hc
 
 /-- Viewing subcoalgebras as regular subcomodules is an order embedding. -/
 def toRegularSubcomoduleOrderEmbedding :
@@ -93,7 +94,11 @@ def toRegularSubcomoduleOrderEmbedding :
     exact SetLike.ext_iff.1 h c
   map_rel_iff' := by
     intro D E
-    rfl
+    constructor
+    · intro h c hc
+      exact h hc
+    · intro h c hc
+      exact h hc
 
 /-- Applying the order embedding from subcoalgebras to regular subcomodules gives
 `toRegularSubcomodule`. -/
@@ -130,11 +135,24 @@ theorem toRegularSubcomodule_sup (D E : Subcoalgebra R C) :
 
 /-- Viewing subcoalgebras as regular subcomodules preserves arbitrary joins. -/
 @[simp]
-theorem toRegularSubcomodule_iSup {ι : Type*} (D : ι → Subcoalgebra R C) :
+theorem toRegularSubcomodule_iSup {ι : Sort*} (D : ι → Subcoalgebra R C) :
     (⨆ i, D i).toRegularSubcomodule = ⨆ i, (D i).toRegularSubcomodule := by
   ext c
-  rw [mem_toRegularSubcomodule, mem_iSup, Subcomodule.mem_iSup]
-  simp
+  change c ∈ (⨆ i, D i).toRegularSubcomodule.toSubmodule ↔
+    c ∈ (⨆ i, (D i).toRegularSubcomodule).toSubmodule
+  rw [Subcomodule.iSup_toSubmodule, toRegularSubcomodule_toSubmodule, iSup_toSubmodule]
+  simp_rw [toRegularSubcomodule_toSubmodule]
+
+/-- Viewing subcoalgebras as regular subcomodules preserves set-indexed suprema. -/
+@[simp]
+theorem toRegularSubcomodule_sSup (S : Set (Subcoalgebra R C)) :
+    (sSup S).toRegularSubcomodule =
+      ⨆ D : S, (D : Subcoalgebra R C).toRegularSubcomodule := by
+  ext c
+  change c ∈ (sSup S).toRegularSubcomodule.toSubmodule ↔
+    c ∈ (⨆ D : S, (D : Subcoalgebra R C).toRegularSubcomodule).toSubmodule
+  rw [Subcomodule.iSup_toSubmodule, toRegularSubcomodule_toSubmodule, sSup_toSubmodule]
+  simp_rw [toRegularSubcomodule_toSubmodule]
 
 /-- Viewing subcoalgebras as regular subcomodules preserves finite joins. -/
 @[simp]
