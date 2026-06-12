@@ -24,6 +24,7 @@ import TauCeti.Algebra.Coalgebra.Subcoalgebra
 import TauCeti.Algebra.Coalgebra.Subcoalgebra.GroupLike
 import TauCeti.Algebra.Coalgebra.Subcoalgebra.Lattice
 import TauCeti.Algebra.Coalgebra.Subcoalgebra.Map
+import TauCeti.Algebra.Coalgebra.Subcoalgebra.RegularSubcomodule
 import TauCeti.Algebra.Coalgebra.Subcomodule
 import TauCeti.Algebra.Coalgebra.Subcomodule.Lattice
 import TauCeti.AlgebraicGeometry.WeilDivisor
