@@ -37,14 +37,95 @@ namespace TauCeti
 
 universe u v
 
-variable (R : Type u) (H : Type v)
-variable [CommRing R] [CommRing H] [HopfAlgebra R H]
+section TensorIdeals
 
-private def hopfIdealLeftTensorIdeal (I : Ideal H) : Ideal (H ⊗[R] H) :=
+variable (R : Type u) (H : Type v)
+variable [CommSemiring R] [Semiring H] [Algebra R H]
+
+namespace HopfIdeal
+
+/-- The image of an ideal `I ≤ H` under the left inclusion `H → H ⊗[R] H`, representing
+`I ⊗ H` inside the tensor product algebra. -/
+def leftTensorIdeal (I : Ideal H) : Ideal (H ⊗[R] H) :=
   Ideal.map (Algebra.TensorProduct.includeLeft (R := R) (S := R) (A := H) (B := H)).toRingHom I
 
-private def hopfIdealRightTensorIdeal (I : Ideal H) : Ideal (H ⊗[R] H) :=
+/-- The image of an ideal `I ≤ H` under the right inclusion `H → H ⊗[R] H`, representing
+`H ⊗ I` inside the tensor product algebra. -/
+def rightTensorIdeal (I : Ideal H) : Ideal (H ⊗[R] H) :=
   Ideal.map (Algebra.TensorProduct.includeRight (R := R) (A := H) (B := H)).toRingHom I
+
+@[simp]
+theorem leftTensorIdeal_def (I : Ideal H) :
+    leftTensorIdeal (R := R) (H := H) I =
+      Ideal.map
+        (Algebra.TensorProduct.includeLeft (R := R) (S := R) (A := H) (B := H)).toRingHom
+        I :=
+  rfl
+
+@[simp]
+theorem rightTensorIdeal_def (I : Ideal H) :
+    rightTensorIdeal (R := R) (H := H) I =
+      Ideal.map
+        (Algebra.TensorProduct.includeRight (R := R) (A := H) (B := H)).toRingHom I :=
+  rfl
+
+/-- The left tensor inclusion sends elements of `I` into `I ⊗ H`. -/
+theorem includeLeft_mem_leftTensorIdeal {I : Ideal H} {x : H} (hx : x ∈ I) :
+    Algebra.TensorProduct.includeLeft (R := R) (S := R) (A := H) (B := H) x ∈
+      leftTensorIdeal (R := R) (H := H) I :=
+  Ideal.mem_map_of_mem _ hx
+
+/-- The right tensor inclusion sends elements of `I` into `H ⊗ I`. -/
+theorem includeRight_mem_rightTensorIdeal {I : Ideal H} {x : H} (hx : x ∈ I) :
+    Algebra.TensorProduct.includeRight (R := R) (A := H) (B := H) x ∈
+      rightTensorIdeal (R := R) (H := H) I :=
+  Ideal.mem_map_of_mem _ hx
+
+theorem mem_leftTensorIdeal {I : Ideal H} {x : H ⊗[R] H} :
+    x ∈ leftTensorIdeal (R := R) (H := H) I ↔
+      x ∈ Ideal.map
+        (Algebra.TensorProduct.includeLeft (R := R) (S := R) (A := H) (B := H)).toRingHom
+        I :=
+  Iff.rfl
+
+theorem mem_rightTensorIdeal {I : Ideal H} {x : H ⊗[R] H} :
+    x ∈ rightTensorIdeal (R := R) (H := H) I ↔
+      x ∈ Ideal.map
+        (Algebra.TensorProduct.includeRight (R := R) (A := H) (B := H)).toRingHom I :=
+  Iff.rfl
+
+theorem leftTensorIdeal_le_iff {I : Ideal H} {J : Ideal (H ⊗[R] H)} :
+    leftTensorIdeal (R := R) (H := H) I ≤ J ↔
+      I ≤ Ideal.comap
+        (Algebra.TensorProduct.includeLeft (R := R) (S := R) (A := H) (B := H)).toRingHom
+        J := by
+  exact Ideal.map_le_iff_le_comap
+
+theorem rightTensorIdeal_le_iff {I : Ideal H} {J : Ideal (H ⊗[R] H)} :
+    rightTensorIdeal (R := R) (H := H) I ≤ J ↔
+      I ≤ Ideal.comap
+        (Algebra.TensorProduct.includeRight (R := R) (A := H) (B := H)).toRingHom J := by
+  exact Ideal.map_le_iff_le_comap
+
+theorem le_leftTensorIdeal_iff {I : Ideal H} {J : Ideal (H ⊗[R] H)} :
+    J ≤ leftTensorIdeal (R := R) (H := H) I ↔
+      J ≤ Ideal.map
+        (Algebra.TensorProduct.includeLeft (R := R) (S := R) (A := H) (B := H)).toRingHom
+        I :=
+  Iff.rfl
+
+theorem le_rightTensorIdeal_iff {I : Ideal H} {J : Ideal (H ⊗[R] H)} :
+    J ≤ rightTensorIdeal (R := R) (H := H) I ↔
+      J ≤ Ideal.map
+        (Algebra.TensorProduct.includeRight (R := R) (A := H) (B := H)).toRingHom I :=
+  Iff.rfl
+
+end HopfIdeal
+
+end TensorIdeals
+
+variable (R : Type u) (H : Type v)
+variable [CommRing R] [CommRing H] [HopfAlgebra R H]
 
 /-- A Hopf ideal in a commutative Hopf algebra.
 
@@ -58,8 +139,8 @@ structure HopfIdeal where
   comul_mem' :
     ∀ ⦃x : H⦄, x ∈ carrier →
       Coalgebra.comul (R := R) x ∈
-        hopfIdealLeftTensorIdeal (R := R) (H := H) carrier ⊔
-          hopfIdealRightTensorIdeal (R := R) (H := H) carrier
+        HopfIdeal.leftTensorIdeal (R := R) (H := H) carrier ⊔
+          HopfIdeal.rightTensorIdeal (R := R) (H := H) carrier
   /-- The counit vanishes on the ideal. -/
   counit_eq_zero' : ∀ ⦃x : H⦄, x ∈ carrier → Coalgebra.counit (R := R) x = 0
   /-- The antipode preserves the ideal. -/
@@ -69,16 +150,6 @@ structure HopfIdeal where
 namespace HopfIdeal
 
 variable {R H}
-
-/-- The image of an ideal `I ≤ H` under the left inclusion `H → H ⊗[R] H`, representing
-`I ⊗ H` inside the tensor product algebra. -/
-def leftTensorIdeal (I : Ideal H) : Ideal (H ⊗[R] H) :=
-  hopfIdealLeftTensorIdeal (R := R) (H := H) I
-
-/-- The image of an ideal `I ≤ H` under the right inclusion `H → H ⊗[R] H`, representing
-`H ⊗ I` inside the tensor product algebra. -/
-def rightTensorIdeal (I : Ideal H) : Ideal (H ⊗[R] H) :=
-  hopfIdealRightTensorIdeal (R := R) (H := H) I
 
 instance : SetLike (HopfIdeal R H) H where
   coe I := I.carrier
