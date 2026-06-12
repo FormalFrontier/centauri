@@ -28,6 +28,12 @@ subcomodules: finite sums of finite subcomodules remain finite.
   finite generation is preserved by finite joins.
 * `Subcomodule.map_sup`, `Subcomodule.map_iSup`, `Subcomodule.map_finite`: images preserve
   joins and finite generation.
+
+## References
+
+The lattice construction is adapted from `TauCeti.Algebra.Coalgebra.Subcoalgebra.Lattice`,
+and the image-join lemmas follow the corresponding map API in
+`TauCeti.Algebra.Coalgebra.Subcoalgebra.Map`.
 -/
 
 open scoped TensorProduct
