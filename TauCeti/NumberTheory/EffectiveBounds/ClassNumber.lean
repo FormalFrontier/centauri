@@ -32,9 +32,8 @@ open _root_.NumberField
 
 namespace TauCeti.NumberField
 
-/-- **Class number bound.** `h_F ≤ |d_F| · 4^[F:ℚ]`. By Minkowski's bound every ideal class
-contains an integral ideal of norm at most `√|d_F|`; the classes inject into ideals of norm
-`≤ √|d_F|`, of which there are at most `|d_F| · 2ⁿ` by `card_ideal_absNorm_le`. -/
+/-- **Class number bound.** The class number of a number field `F` is at most
+`|discr F| * 4 ^ [F : ℚ]`. -/
 theorem classNumber_le_bound (F : Type*) [Field F] [NumberField F] :
     (NumberField.classNumber F : ℝ) ≤
       |(NumberField.discr F : ℝ)| * 4 ^ Module.finrank ℚ F := by
