@@ -39,4 +39,5 @@ import TauCeti.Analysis.PDE.UniformEllipticity
 import TauCeti.Basic
 import TauCeti.FieldTheory.Trace
 import TauCeti.NumberTheory.EffectiveBounds.Discriminant
+import TauCeti.NumberTheory.EffectiveBounds.ClassNumber
 import TauCeti.NumberTheory.EffectiveBounds.IdealCount
