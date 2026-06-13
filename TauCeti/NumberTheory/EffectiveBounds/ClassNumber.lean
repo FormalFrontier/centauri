@@ -2,7 +2,7 @@
 Copyright (c) 2026 The Tau Ceti contributors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
-import Mathlib
+import Mathlib.NumberTheory.NumberField.ClassNumber
 import TauCeti.NumberTheory.EffectiveBounds.IdealCount
 
 /-!
@@ -35,7 +35,7 @@ namespace TauCeti.NumberField
 /-- **Class number bound.** `h_F ≤ |d_F| · 4^[F:ℚ]`. By Minkowski's bound every ideal class
 contains an integral ideal of norm at most `√|d_F|`; the classes inject into ideals of norm
 `≤ √|d_F|`, of which there are at most `|d_F| · 2ⁿ` by `card_ideal_absNorm_le`. -/
-theorem classNumber_le_bound (F : Type) [Field F] [NumberField F] :
+theorem classNumber_le_bound (F : Type*) [Field F] [NumberField F] :
     (NumberField.classNumber F : ℝ) ≤
       |(NumberField.discr F : ℝ)| * 4 ^ Module.finrank ℚ F := by
   have := @NumberField.exists_ideal_in_class_of_norm_le F _ _
@@ -78,10 +78,13 @@ theorem classNumber_le_bound (F : Type) [Field F] [NumberField F] :
         (Module.finrank ℚ F) (by norm_num) fun n ihn => by
           rw [Nat.factorial_succ, pow_succ']
           exact le_trans (Nat.mul_le_mul_left _ ihn) (by gcongr; linarith)) (by positivity))
-    · refine le_trans (mul_le_mul_of_nonneg_right (pow_le_pow_left₀ (by positivity)
-        (show (4 : ℝ) / Real.pi ≤ 2 by rw [div_le_iff₀] <;> linarith [Real.pi_gt_three]) _)
+    · have h_pi_le_two : (4 : ℝ) / Real.pi ≤ 2 := by
+        rw [div_le_iff₀] <;> linarith [Real.pi_gt_three]
+      have h_four : (4 : ℝ) = 2 ^ 2 := by norm_num
+      refine le_trans (mul_le_mul_of_nonneg_right (pow_le_pow_left₀ (by positivity)
+        h_pi_le_two _)
         (by positivity)) ?_
-      rw [show (4 : ℝ) = 2 ^ 2 by norm_num, ← pow_mul, ← pow_add]
+      rw [h_four, ← pow_mul, ← pow_add]
       gcongr <;> norm_num
       have := NumberField.InfinitePlace.card_add_two_mul_card_eq_rank F; linarith
 
