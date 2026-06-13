@@ -49,3 +49,4 @@ import TauCeti.NumberTheory.EffectiveBounds.UnitSquares
 import TauCeti.NumberTheory.Multiquadratic.Degree
 import TauCeti.NumberTheory.Multiquadratic.Galois
 import TauCeti.NumberTheory.Multiquadratic.SquareClass
+import TauCeti.NumberTheory.Multiquadratic.Transversal
