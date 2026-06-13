@@ -48,4 +48,5 @@ import TauCeti.NumberTheory.EffectiveBounds.IdealCount
 import TauCeti.NumberTheory.EffectiveBounds.UnitSquares
 import TauCeti.NumberTheory.Multiquadratic.Degree
 import TauCeti.NumberTheory.Multiquadratic.Galois
+import TauCeti.NumberTheory.Multiquadratic.GaloisGroup
 import TauCeti.NumberTheory.Multiquadratic.SquareClass
