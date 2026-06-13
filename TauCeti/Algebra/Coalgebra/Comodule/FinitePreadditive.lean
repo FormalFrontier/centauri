@@ -12,7 +12,7 @@ import TauCeti.Algebra.Coalgebra.Comodule.Preadditive
 This file records the preadditive structure on the category of finitely generated right
 comodules over a coalgebra over a commutative ring. The category is a full subcategory of all
 comodules, so Mathlib transfers the preadditive structure from `ComoduleCat`; the declarations
-here expose the concrete API needed to use finite-dimensional comodules without unfolding the
+here expose concrete simp API needed to use finite-dimensional comodules without unfolding the
 full-subcategory construction.
 
 This is a small Layer 1 prerequisite for the reductive-groups roadmap's finite-dimensional
@@ -22,9 +22,6 @@ comodules.
 
 ## Main declarations
 
-* `TauCeti.FGComoduleCat.preadditive`: `FGComoduleCat R C` is preadditive over a commutative
-  ring.
-* `TauCeti.FGComoduleCat.incl_additive`: the inclusion into all comodules is additive.
 * Simp lemmas identifying zero, addition, negation, and subtraction with the corresponding
   ambient comodule morphisms.
 
@@ -45,22 +42,8 @@ universe u v w
 
 namespace FGComoduleCat
 
-variable (R : Type u) [CommRing R]
-variable (C : Type v) [AddCommMonoid C] [Module R C] [Coalgebra R C]
-
-/-- The category of finitely generated right comodules over a coalgebra over a commutative ring
-is preadditive. -/
-instance preadditive : Preadditive (FGComoduleCat.{u, v, w} R C) :=
-  inferInstanceAs (Preadditive (ComoduleCat.isFG.{u, v, w} (R := R) (C := C)).FullSubcategory)
-
-/-- The inclusion from finitely generated comodules into all comodules is additive. -/
-instance incl_additive : Functor.Additive
-    (incl (R := R) (C := C) : FGComoduleCat.{u, v, w} R C ⥤
-      ComoduleCat.{u, v, w} R C) :=
-  inferInstanceAs (Functor.Additive
-    (ComoduleCat.isFG.{u, v, w} (R := R) (C := C)).ι)
-
-variable {R C}
+variable {R : Type u} [CommRing R]
+variable {C : Type v} [AddCommMonoid C] [Module R C] [Coalgebra R C]
 variable {M N P : FGComoduleCat.{u, v, w} R C}
 
 /-- The zero morphism of finitely generated comodules has the zero ambient comodule morphism
