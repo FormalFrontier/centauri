@@ -7,8 +7,8 @@ import Mathlib.FieldTheory.IntermediateField.Adjoin.Algebra
 /-!
 # Quadratic normal forms in intermediate fields
 
-This file contains a small normal-form lemma, in characteristic not two, for adjoining one
-element whose square already lies in an intermediate field.
+This file contains a small normal-form lemma for adjoining one element whose square already
+lies in an intermediate field.
 -/
 
 open IntermediateField
@@ -28,10 +28,10 @@ theorem mem_sup_adjoin_sq_of_exists {F : IntermediateField K L} {x y : L}
   exact add_mem (hF ha)
     (mul_mem (hF hb) (hx (IntermediateField.mem_adjoin_of_mem K (Set.mem_singleton x))))
 
-/-- If `x² ∈ F` and the extension field has characteristic not two, every element of
-`F ⊔ K⟮x⟯` has the form `a + b * x` with `a, b ∈ F`. -/
+/-- If `x² ∈ F`, every element of `F ⊔ K⟮x⟯` has the form `a + b * x` with
+`a, b ∈ F`. -/
 theorem exists_add_mul_of_mem_sup_adjoin_sq {F : IntermediateField K L} {x : L}
-    (hx2 : x ^ 2 ∈ F) [NeZero (2 : L)] {y : L}
+    (hx2 : x ^ 2 ∈ F) {y : L}
     (hy : y ∈ F ⊔ IntermediateField.adjoin K {x}) :
     ∃ a b : L, a ∈ F ∧ b ∈ F ∧ y = a + b * x := by
   let S : IntermediateField K L :=
@@ -68,16 +68,22 @@ theorem exists_add_mul_of_mem_sup_adjoin_sq {F : IntermediateField K L} {x : L}
               intro hx
               apply hbx
               rw [hx, mul_zero]
+            have htwo : (2 : L) ≠ 0 := by
+              intro htwo
+              apply hy0
+              rw [haeq, ← two_mul]
+              simp [htwo]
             have hden : (2 : L) * b * x ^ 2 ≠ 0 := by
               have hb0 : b ≠ 0 := left_ne_zero_of_mul hbx
-              exact mul_ne_zero (mul_ne_zero (NeZero.ne (2 : L)) hb0) (pow_ne_zero 2 hx0)
+              exact mul_ne_zero (mul_ne_zero htwo hb0) (pow_ne_zero 2 hx0)
             have hb0 : b ≠ 0 := left_ne_zero_of_mul hbx
             refine ⟨0, ((2 : L) * b * x ^ 2)⁻¹, zero_mem F, ?_, ?_⟩
             · exact inv_mem (mul_mem (mul_mem (F.natCast_mem 2) hb) hx2)
             · rw [haeq]
-              field_simp [hden, hbx, hb0, hx0, NeZero.ne (2 : L)]
+              field_simp [hden, hbx, hb0, hx0, htwo]
               rw [mul_zero, zero_mul, zero_add]
-              norm_num [NeZero.ne (2 : L)]
+              rw [show (1 + 1 : L) = 2 by norm_num]
+              exact div_self htwo
           · have hDmem : a ^ 2 - b ^ 2 * x ^ 2 ∈ F :=
               sub_mem (pow_mem ha 2) (mul_mem (pow_mem hb 2) hx2)
             refine ⟨a * (a ^ 2 - b ^ 2 * x ^ 2)⁻¹,
@@ -97,20 +103,20 @@ theorem exists_add_mul_of_mem_sup_adjoin_sq {F : IntermediateField K L} {x : L}
       exact ⟨0, 1, zero_mem F, one_mem F, by simp⟩
   exact hle hy
 
-/-- If `x² ∈ F` and the extension field has characteristic not two, every element of
-`F ⊔ K⟮x⟯` has the form `a + b * x` with `a, b ∈ F`. -/
+/-- Membership in `F ⊔ K⟮x⟯`, for `x² ∈ F`, is equivalent to having the form `a + b * x`
+with `a, b ∈ F`. -/
 theorem mem_sup_adjoin_sq {F : IntermediateField K L} {x : L}
-    (hx2 : x ^ 2 ∈ F) [NeZero (2 : L)] {y : L}
-    (hy : y ∈ F ⊔ IntermediateField.adjoin K {x}) :
-    ∃ a b : L, a ∈ F ∧ b ∈ F ∧ y = a + b * x :=
-  exists_add_mul_of_mem_sup_adjoin_sq hx2 hy
-
-/-- Membership in `F ⊔ K⟮x⟯`, for `x² ∈ F` in characteristic not two, is equivalent to
-having the form `a + b * x` with `a, b ∈ F`. -/
-theorem mem_sup_adjoin_sq_iff {F : IntermediateField K L} {x : L}
-    (hx2 : x ^ 2 ∈ F) [NeZero (2 : L)] {y : L} :
+    (hx2 : x ^ 2 ∈ F) {y : L} :
     y ∈ F ⊔ IntermediateField.adjoin K {x} ↔
       ∃ a b : L, a ∈ F ∧ b ∈ F ∧ y = a + b * x :=
   ⟨exists_add_mul_of_mem_sup_adjoin_sq hx2, mem_sup_adjoin_sq_of_exists⟩
+
+/-- Membership in `F ⊔ K⟮x⟯`, for `x² ∈ F`, is equivalent to having the form `a + b * x`
+with `a, b ∈ F`. -/
+theorem mem_sup_adjoin_sq_iff {F : IntermediateField K L} {x : L}
+    (hx2 : x ^ 2 ∈ F) {y : L} :
+    y ∈ F ⊔ IntermediateField.adjoin K {x} ↔
+      ∃ a b : L, a ∈ F ∧ b ∈ F ∧ y = a + b * x :=
+  mem_sup_adjoin_sq hx2
 
 end TauCeti.IntermediateField

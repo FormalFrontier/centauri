@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 -/
 import TauCeti.FieldTheory.IntermediateField.Quadratic
 import Mathlib.Analysis.Real.Sqrt
+import Mathlib.Data.Finset.Fin
 
 /-!
 # Square-class descent in multiquadratic towers
@@ -27,6 +28,8 @@ the structure theory of multiquadratic fields.
 * `TauCeti.Multiquadratic.sqrtTower_eq_adjoin_fin_range`: the bridge to a `Fin n` index.
 * `TauCeti.Multiquadratic.sqrtTower_root_mem`: the listed roots lie in the tower.
 * `TauCeti.Multiquadratic.squareClass_of_sq_mem`: field-generic square-class descent.
+* `TauCeti.Multiquadratic.squareClass_of_sq_mem_fin`: finite-index square-class descent.
+* `TauCeti.Multiquadratic.squareClass_of_sq_mem_fintype`: arbitrary finite-index descent.
 * `TauCeti.Multiquadratic.squareClass_of_sqrt_mem`: rational-real square-class descent.
 
 ## Provenance
@@ -230,6 +233,85 @@ theorem squareClass_of_sq_mem (d : ℕ → K) (root : ℕ → L)
             rw [← hEq]
             exact hmem'
           exact (hnext hroot_mem).elim
+
+/-- **Finite-index square-class descent.** If `y² = r` over `K` and
+`y ∈ K(root i | i : Fin n)`, where `root i` is a chosen square root of `d i`, then `r`
+is a square times a subset product of the `d i`. -/
+theorem squareClass_of_sq_mem_fin {n : ℕ} (d : Fin n → K) (root : Fin n → L)
+    (hroot : ∀ j, root j ^ 2 = algebraMap K L (d j)) [NeZero (2 : L)]
+    {r : K} {y : L} (hy : y ^ 2 = algebraMap K L r)
+    (hmem : y ∈ IntermediateField.adjoin K (Set.range root)) :
+    ∃ (T : Finset (Fin n)) (s : K), r = s ^ 2 * ∏ j ∈ T, d j := by
+  classical
+  let dNat : ℕ → K := fun j => if h : j < n then d ⟨j, h⟩ else 0
+  let rootNat : ℕ → L := fun j => if h : j < n then root ⟨j, h⟩ else 0
+  have hrootNat : ∀ j, rootNat j ^ 2 = algebraMap K L (dNat j) := by
+    intro j
+    by_cases h : j < n
+    · simp [rootNat, dNat, h, hroot ⟨j, h⟩]
+    · simp [rootNat, dNat, h]
+  have htower :
+      sqrtTower (K := K) rootNat n = IntermediateField.adjoin K (Set.range root) := by
+    rw [sqrtTower_eq_adjoin_fin_range]
+    congr 1
+    ext z
+    constructor
+    · rintro ⟨j, rfl⟩
+      exact ⟨j, by simp [rootNat]⟩
+    · rintro ⟨j, rfl⟩
+      exact ⟨j, by simp [rootNat]⟩
+  have hmemNat : y ∈ sqrtTower (K := K) rootNat n := by
+    rwa [htower]
+  obtain ⟨T, s, hT, hr⟩ := squareClass_of_sq_mem dNat rootNat hrootNat n r y hy hmemNat
+  have hTlt : ∀ m ∈ T, m < n := fun m hm => hT hm
+  refine ⟨T.attachFin hTlt, s, ?_⟩
+  have hprod : (∏ j ∈ T.attachFin hTlt, d j) = ∏ j ∈ T, dNat j := by
+    calc
+      (∏ j ∈ T.attachFin hTlt, d j) = ∏ j ∈ T.attachFin hTlt, dNat j := by
+        refine Finset.prod_congr rfl ?_
+        intro j hj
+        simp [dNat]
+      _ = ∏ j ∈ (T.attachFin hTlt).map Fin.valEmbedding, dNat j := by
+        rw [Finset.prod_map]
+        rfl
+      _ = ∏ j ∈ T, dNat j := by
+        rw [Finset.map_valEmbedding_attachFin]
+  rwa [hprod]
+
+/-- **Arbitrary finite-index square-class descent.** If `y² = r` over `K` and
+`y ∈ K(root i | i : ι)` for a finite index type `ι`, where `root i` is a chosen square
+root of `d i`, then `r` is a square times a subset product of the `d i`. -/
+theorem squareClass_of_sq_mem_fintype {ι : Type*} [Finite ι] (d : ι → K) (root : ι → L)
+    (hroot : ∀ j, root j ^ 2 = algebraMap K L (d j)) [NeZero (2 : L)]
+    {r : K} {y : L} (hy : y ^ 2 = algebraMap K L r)
+    (hmem : y ∈ IntermediateField.adjoin K (Set.range root)) :
+    ∃ (T : Finset ι) (s : K), r = s ^ 2 * ∏ j ∈ T, d j := by
+  classical
+  letI := Fintype.ofFinite ι
+  let e : ι ≃ Fin (Fintype.card ι) := Fintype.equivFin ι
+  let dFin : Fin (Fintype.card ι) → K := fun j => d (e.symm j)
+  let rootFin : Fin (Fintype.card ι) → L := fun j => root (e.symm j)
+  have hrootFin : ∀ j, rootFin j ^ 2 = algebraMap K L (dFin j) := by
+    intro j
+    exact hroot (e.symm j)
+  have hfield :
+      IntermediateField.adjoin K (Set.range rootFin) =
+        IntermediateField.adjoin K (Set.range root) := by
+    congr 1
+    ext z
+    constructor
+    · rintro ⟨j, rfl⟩
+      exact ⟨e.symm j, rfl⟩
+    · rintro ⟨j, rfl⟩
+      exact ⟨e j, by simp [rootFin, e]⟩
+  have hmemFin : y ∈ IntermediateField.adjoin K (Set.range rootFin) := by
+    rwa [hfield]
+  obtain ⟨T, s, hr⟩ := squareClass_of_sq_mem_fin dFin rootFin hrootFin hy hmemFin
+  refine ⟨T.map e.symm.toEmbedding, s, ?_⟩
+  have hprod : (∏ j ∈ T.map e.symm.toEmbedding, d j) = ∏ j ∈ T, dFin j := by
+    rw [Finset.prod_map]
+    rfl
+  rwa [hprod]
 
 /-- **Square-class descent for real rational square roots.** If `r` is a nonnegative
 rational with `√r ∈ ℚ(√c₀, …, √cₙ₋₁)` and every `c j` is nonnegative, then `r` is a
