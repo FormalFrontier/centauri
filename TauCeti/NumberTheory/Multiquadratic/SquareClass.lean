@@ -23,6 +23,8 @@ the structure theory of multiquadratic fields.
 ## Main definitions and results
 
 * `TauCeti.Multiquadratic.sqrtTower`: the tower `K(root₀, …, rootₙ₋₁)`.
+* `TauCeti.Multiquadratic.sqrtTower_def`: the defining adjoin restatement.
+* `TauCeti.Multiquadratic.mem_sqrtTower_iff`: membership in the defining adjoin.
 * `TauCeti.Multiquadratic.sqrtTower_succ`: the one-step recursion.
 * `TauCeti.Multiquadratic.sqrtTower_le_iff`: the universal property of the tower.
 * `TauCeti.Multiquadratic.sqrtTower_eq_adjoin_fin_range`: the bridge to a `Fin n` index.
@@ -51,6 +53,17 @@ variable {K L : Type*} [Field K] [Field L] [Algebra K L]
 noncomputable def sqrtTower (root : ℕ → L) (n : ℕ) : IntermediateField K L :=
   IntermediateField.adjoin K (root '' Set.Iio n)
 
+/-- The defining adjoin presentation of `sqrtTower`. -/
+theorem sqrtTower_def (root : ℕ → L) (n : ℕ) :
+    sqrtTower (K := K) root n = IntermediateField.adjoin K (root '' Set.Iio n) :=
+  rfl
+
+/-- Membership in `sqrtTower` in terms of the defining adjoin. -/
+theorem mem_sqrtTower_iff (root : ℕ → L) (n : ℕ) (x : L) :
+    x ∈ sqrtTower (K := K) root n ↔
+      x ∈ IntermediateField.adjoin K (root '' Set.Iio n) :=
+  Iff.rfl
+
 /-- The zeroth multiquadratic tower is the base field. -/
 @[simp]
 theorem sqrtTower_zero (root : ℕ → L) : sqrtTower (K := K) root 0 = ⊥ := by
@@ -71,6 +84,7 @@ theorem sqrtTower_succ (root : ℕ → L) (n : ℕ) :
 
 /-- The universal property of `sqrtTower`: it is the smallest intermediate field containing
 the first `n` chosen roots. -/
+@[simp]
 theorem sqrtTower_le_iff (root : ℕ → L) (n : ℕ) (F : IntermediateField K L) :
     sqrtTower (K := K) root n ≤ F ↔ ∀ j, j < n → root j ∈ F := by
   rw [sqrtTower, IntermediateField.adjoin_le_iff]
@@ -131,11 +145,13 @@ private theorem algebraMap_eq_iff {a b : K} (h : algebraMap K L a = algebraMap K
 `y ∈ K(root₀, …, rootₙ₋₁)`, where `root j` is a chosen square root of `d j`, then `r` is a
 square times a subset product of the `d j` with `j < n`. -/
 theorem squareClass_of_sq_mem (d : ℕ → K) (root : ℕ → L)
-    (hroot : ∀ j, root j ^ 2 = algebraMap K L (d j)) [NeZero (2 : L)] :
+    (hroot : ∀ j, root j ^ 2 = algebraMap K L (d j)) [NeZero (2 : K)] :
     ∀ n, ∀ r : K, ∀ y : L, y ^ 2 = algebraMap K L r → y ∈ sqrtTower (K := K) root n →
       ∃ (T : Finset ℕ) (s : K), ↑T ⊆ Set.Iio n ∧
         r = s ^ 2 * ∏ j ∈ T, d j := by
   classical
+  haveI : NeZero (2 : L) :=
+    NeZero.nat_of_injective (n := 2) (f := algebraMap K L) (algebraMap K L).injective
   intro n
   induction n with
   | zero =>
@@ -237,7 +253,7 @@ theorem squareClass_of_sq_mem (d : ℕ → K) (root : ℕ → L)
 `y ∈ K(root i | i : Fin n)`, where `root i` is a chosen square root of `d i`, then `r`
 is a square times a subset product of the `d i`. -/
 theorem squareClass_of_sq_mem_fin {n : ℕ} (d : Fin n → K) (root : Fin n → L)
-    (hroot : ∀ j, root j ^ 2 = algebraMap K L (d j)) [NeZero (2 : L)]
+    (hroot : ∀ j, root j ^ 2 = algebraMap K L (d j)) [NeZero (2 : K)]
     {r : K} {y : L} (hy : y ^ 2 = algebraMap K L r)
     (hmem : y ∈ IntermediateField.adjoin K (Set.range root)) :
     ∃ (T : Finset (Fin n)) (s : K), r = s ^ 2 * ∏ j ∈ T, d j := by
@@ -281,7 +297,7 @@ theorem squareClass_of_sq_mem_fin {n : ℕ} (d : Fin n → K) (root : Fin n → 
 `y ∈ K(root i | i : ι)` for a finite index type `ι`, where `root i` is a chosen square
 root of `d i`, then `r` is a square times a subset product of the `d i`. -/
 theorem squareClass_of_sq_mem_fintype {ι : Type*} [Finite ι] (d : ι → K) (root : ι → L)
-    (hroot : ∀ j, root j ^ 2 = algebraMap K L (d j)) [NeZero (2 : L)]
+    (hroot : ∀ j, root j ^ 2 = algebraMap K L (d j)) [NeZero (2 : K)]
     {r : K} {y : L} (hy : y ^ 2 = algebraMap K L r)
     (hmem : y ∈ IntermediateField.adjoin K (Set.range root)) :
     ∃ (T : Finset ι) (s : K), r = s ^ 2 * ∏ j ∈ T, d j := by
