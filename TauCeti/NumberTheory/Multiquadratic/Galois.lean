@@ -2,14 +2,17 @@
 Copyright (c) 2026 The Tau Ceti contributors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
-import Mathlib
+import Mathlib.Algebra.Ring.Commute
+import Mathlib.FieldTheory.IntermediateField.Adjoin.Defs
+import Mathlib.GroupTheory.Exponent
 
 /-!
 # The automorphism group of a multiquadratic field is elementary abelian of exponent two
 
 For square roots `root i` of radicands `d i ∈ K`, every `K`-automorphism of the multiquadratic
-field `K(rootᵢ : i)` sends each generator to `± root i` (the two roots of `X² - d i`), so it
-squares to the identity. Hence the automorphism group has exponent two and is abelian.
+field `K(rootᵢ : i)` sends each generator to another element with the same square. Hence applying
+the automorphism twice fixes each generator, so it squares to the identity. Therefore the
+automorphism group has exponent two and is abelian.
 
 These are the "exponent-two and abelian" facts of the multiquadratic roadmap; the explicit
 identification of the group with `(ℤ/2)ⁿ` is a separate, later step.
@@ -34,8 +37,10 @@ namespace TauCeti.Multiquadratic
 variable {K L : Type*} [Field K] [Field L] [Algebra K L] {ι : Type*}
   {d : ι → K} {root : ι → L}
 
-/-- Every `K`-automorphism of the multiquadratic field `K(rootᵢ : i)` is an involution: it
-sends each generator `root i` to `± root i`, since `root i ^ 2 = d i ∈ K` is fixed. -/
+/-- Every `K`-automorphism of the multiquadratic field `K(rootᵢ : i)` is an involution: fixing
+`K` forces the image of each generator to have the same square as the generator, so applying the
+automorphism twice fixes the generators. -/
+@[simp]
 theorem aut_mul_self_eq_one (hroot : ∀ i, root i ^ 2 = algebraMap K L (d i))
     (σ : IntermediateField.adjoin K (Set.range root) ≃ₐ[K]
       IntermediateField.adjoin K (Set.range root)) :
