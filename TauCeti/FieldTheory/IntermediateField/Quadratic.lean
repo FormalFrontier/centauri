@@ -123,8 +123,7 @@ theorem mem_sup_adjoin_sq {F : IntermediateField K L} {x : L}
       ∃ a b : L, a ∈ F ∧ b ∈ F ∧ y = a + b * x :=
   ⟨exists_add_mul_of_mem_sup_adjoin_sq hx2, mem_sup_adjoin_sq_of_exists⟩
 
-/-- If `x² ∈ F` but `x ∉ F`, then `x` has degree exactly two over `F`: its minimal polynomial
-divides `X² - x²`, has degree at most two, and is not linear since `x ∉ F`. -/
+/-- If `x² ∈ F` but `x ∉ F`, then the simple extension `F⟮x⟯` has finrank two over `F`. -/
 theorem finrank_adjoin_simple_eq_two_of_sq_mem_notMem (F : IntermediateField K L) {x : L}
     (hx2 : x ^ 2 ∈ F) (hxF : x ∉ F) :
     Module.finrank F (IntermediateField.adjoin F {x}) = 2 := by
@@ -153,6 +152,19 @@ theorem finrank_adjoin_simple_eq_two_of_sq_mem_notMem (F : IntermediateField K L
     exact hxF (hy ▸ y.2)
   omega
 
+/-- The identity linear equivalence between an intermediate field and its scalar restriction.
+
+The two intermediate fields have the same carrier by `IntermediateField.coe_restrictScalars`;
+only the scalar action changes from `F` to the base field `K`. -/
+def restrictScalarsLinearEquiv (F : IntermediateField K L) (E : IntermediateField F L) :
+    E.restrictScalars K ≃ₗ[K] E where
+  toFun y := ⟨(y : L), y.2⟩
+  invFun y := ⟨(y : L), y.2⟩
+  left_inv _ := rfl
+  right_inv _ := rfl
+  map_add' _ _ := rfl
+  map_smul' _ _ := rfl
+
 /-- If `x² ∈ F` but `x ∉ F`, then adjoining `x` doubles the degree:
 `[F ⊔ K⟮x⟯ : K] = 2 · [F : K]`. -/
 theorem finrank_sup_adjoin_simple_eq_mul_two (F : IntermediateField K L) {x : L}
@@ -164,14 +176,10 @@ theorem finrank_sup_adjoin_simple_eq_mul_two (F : IntermediateField K L) {x : L}
     IntermediateField.restrictScalars_adjoin_eq_sup K F ({x} : Set L)
   have hfinL : Module.finrank F (IntermediateField.adjoin F {x}) = 2 :=
     finrank_adjoin_simple_eq_two_of_sq_mem_notMem F hx2 hxF
-  let e : ((IntermediateField.adjoin F {x}).restrictScalars K) ≃ₗ[K]
-      (IntermediateField.adjoin F {x}) :=
-    { toFun := fun y => ⟨(y : L), y.2⟩, invFun := fun y => ⟨(y : L), y.2⟩
-      left_inv := fun _ => rfl, right_inv := fun _ => rfl
-      map_add' := fun _ _ => rfl, map_smul' := fun _ _ => rfl }
   calc Module.finrank K ((F ⊔ IntermediateField.adjoin K {x}) : IntermediateField K L)
       = Module.finrank K ((IntermediateField.adjoin F {x}).restrictScalars K) := by rw [hL]
-    _ = Module.finrank K (IntermediateField.adjoin F {x}) := e.finrank_eq
+    _ = Module.finrank K (IntermediateField.adjoin F {x}) :=
+        (restrictScalarsLinearEquiv F (IntermediateField.adjoin F {x})).finrank_eq
     _ = Module.finrank K F * Module.finrank F (IntermediateField.adjoin F {x}) := by
         rw [Module.finrank_mul_finrank]
     _ = Module.finrank K F * 2 := by rw [hfinL]

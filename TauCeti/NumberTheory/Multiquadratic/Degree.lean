@@ -8,10 +8,10 @@ import TauCeti.NumberTheory.Multiquadratic.SquareClass
 # The degree of a multiquadratic field
 
 For square roots `root j` of radicands `d j` over a field `K` (characteristic not two), the
-multiquadratic field `K(root₀, …, rootₙ₋₁)` has degree `2ⁿ` over `K` precisely when the
-radicands are **square-class independent**: no nonempty subset product `∏_{j ∈ S} d j` is a
-square. Each tower step adjoins a root of the degree-two polynomial `X² - d j`, doubling the
-degree, and square-class descent shows the new root is genuinely outside the previous stage.
+multiquadratic field `K(root₀, …, rootₙ₋₁)` has degree `2ⁿ` over `K` when the radicands are
+**square-class independent**: no nonempty subset product `∏_{j ∈ S} d j` is a square. Each
+tower step adjoins a root of the degree-two polynomial `X² - d j`, doubling the degree, and
+square-class descent shows the new root is genuinely outside the previous stage.
 
 ## Main results
 
@@ -21,7 +21,8 @@ degree, and square-class descent shows the new root is genuinely outside the pre
 
 ## Provenance
 
-The tower-degree induction is migrated and generalised from
+The tower-degree induction is migrated and generalised from the declaration
+`sqrtTower_finrank` in `ErdosUnitDistance/MultiquadraticField.lean` in
 [kim-em/erdos-unit-distance](https://github.com/kim-em/erdos-unit-distance), the formalization
 of L. Alpöge's disproof of the uniform-constant Erdős unit-distance conjecture.
 -/
@@ -65,11 +66,12 @@ theorem finrank_sqrtTower {d : ℕ → K} {root : ℕ → L}
 
 /-- **Degree of a multiquadratic field over a finite index.** If no nonempty subset product of
 the radicands `d i` is a square in `K`, then `[K(rootᵢ : i) : K] = 2^|ι|`. -/
-theorem finrank_adjoin_range {ι : Type*} [Fintype ι] {d : ι → K} {root : ι → L}
+theorem finrank_adjoin_range {ι : Type*} [Finite ι] {d : ι → K} {root : ι → L}
     (hroot : ∀ i, root i ^ 2 = algebraMap K L (d i)) [NeZero (2 : K)]
     (hindep : ∀ S : Finset ι, S.Nonempty → ¬ IsSquare (∏ i ∈ S, d i)) :
-    Module.finrank K (IntermediateField.adjoin K (Set.range root)) = 2 ^ Fintype.card ι := by
+    Module.finrank K (IntermediateField.adjoin K (Set.range root)) = 2 ^ Nat.card ι := by
   classical
+  letI := Fintype.ofFinite ι
   let e : ι ≃ Fin (Fintype.card ι) := Fintype.equivFin ι
   -- Pad the data to `ℕ`, with `1` (a harmless square) beyond the index range.
   let toι : ∀ {j : ℕ}, j < Fintype.card ι → ι := fun {j} h => e.symm ⟨j, h⟩
@@ -90,6 +92,7 @@ theorem finrank_adjoin_range {ι : Type*} [Fintype ι] {d : ι → K} {root : ι
     · rintro ⟨i, rfl⟩
       exact ⟨e i, by simp [rootN, toι, (e i).2]⟩
   rw [← hfield]
+  rw [Nat.card_eq_fintype_card]
   refine finrank_sqrtTower hrootN (Fintype.card ι) (fun S hSne hSsub => ?_)
   -- Reindex the subset product over `ℕ` to one over `ι`, then apply `hindep`.
   have hmem : ∀ j ∈ S, j < Fintype.card ι := fun j hj => Set.mem_Iio.mp (hSsub hj)
